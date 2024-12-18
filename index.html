@@ -1,1 +1,137 @@
-"hello world"
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geo Jose - Senior Cat Developer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        header p {
+            font-size: 1.2em;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+        }
+        .about {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .portfolio {
+            margin-top: 30px;
+        }
+        .portfolio h2 {
+            margin-bottom: 20px;
+        }
+        .portfolio-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .portfolio-item {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            width: calc(33.333% - 20px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .portfolio-item img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+        .portfolio-item h3 {
+            margin: 10px 0 0;
+            font-size: 1.2em;
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 30px;
+        }
+        footer p {
+            margin: 0;
+            font-size: 0.9em;
+        }
+        @media (max-width: 768px) {
+            .portfolio-item {
+                width: calc(50% - 20px);
+            }
+        }
+        @media (max-width: 480px) {
+            .portfolio-item {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Geo Jose</h1>
+    <p>Senior Cat Developer - Building Purrfection in Every Line of Code</p>
+</header>
+
+<div class="container">
+    <section class="about">
+        <h2>About Me</h2>
+        <p>Hello! I'm Geo Jose, a Senior Cat Developer with a passion for creating sleek, elegant, and responsive designs tailored to the unique needs of every feline. From interactive paw interfaces to scalable meow-based architectures, I've got it all covered.</p>
+    </section>
+
+    <section class="portfolio">
+        <h2>Portfolio</h2>
+        <div class="portfolio-grid">
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/300/200" alt="Cat Project 1">
+                <h3>Whisker Tracker</h3>
+            </div>
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/301/200" alt="Cat Project 2">
+                <h3>Purrformance Metrics</h3>
+            </div>
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/302/200" alt="Cat Project 3">
+                <h3>Meow Translator</h3>
+            </div>
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/303/200" alt="Cat Project 4">
+                <h3>Cat-alogue Management</h3>
+            </div>
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/304/200" alt="Cat Project 5">
+                <h3>Scratchpad Editor</h3>
+            </div>
+            <div class="portfolio-item">
+                <img src="https://placekitten.com/305/200" alt="Cat Project 6">
+                <h3>Feline Social Network</h3>
+            </div>
+        </div>
+    </section>
+</div>
+
+<footer>
+    <p>© 2024 Geo Jose - Senior Cat Developer. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
