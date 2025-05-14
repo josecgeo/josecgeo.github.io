@@ -1,4 +1,4 @@
-# Update and upgrade
+## Update And Upgrade
 ~~~
 sudo apt update &&
 sudo apt upgrade -y &&
@@ -9,11 +9,11 @@ sudo apt-get clean -y &&
 sudo apt update &&
 sudo apt upgrade -y
 ~~~
-# Install required packages
-```commandline
-sudo apt install ca-certificates curl htop
+## Install required packages
 ```
-# Install Tuned
+sudo apt install -y ca-certificates curl htop
+```
+## Install Tuned
 ```
 sudo apt update &&
 sudo apt upgrade -y &&
@@ -24,7 +24,7 @@ sudo tuned-adm profile throughput-performance &&
 sudo systemctl restart tuned &&
 sudo tuned-adm active
 ```
-# Add 8GB swap memory
+## Add 8GB Swap Memory
 ```
 if [ ! -f /swapfile ]; then
 sudo fallocate -l 8G /swapfile &&
@@ -37,7 +37,7 @@ else
 echo "Swapfile already exists."
 fi
 ```
-# Add 15% zRAM swap memory
+## Add 15% zRAM Swap Memory
 ```
 sudo apt install -y zram-tools &&
 sudo systemctl enable zramswap &&
@@ -46,7 +46,7 @@ grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/def
 grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=15" | sudo tee -a /etc/default/zramswap > /dev/null &&
 sudo systemctl restart zramswap
 ```
-# Sysctl Parameters
+## Change Sysctl Parameters
 ```
 grep -q "^vm.swappiness" /etc/sysctl.conf || echo "vm.swappiness = 10" | sudo tee -a /etc/sysctl.conf > /dev/null
 grep -q "^vm.vfs_cache_pressure" /etc/sysctl.conf || echo "vm.vfs_cache_pressure = 50" | sudo tee -a /etc/sysctl.conf > /dev/null
@@ -55,7 +55,7 @@ grep -q "^net.core.somaxconn" /etc/sysctl.conf || echo "net.core.somaxconn = 819
 grep -q "^net.ipv4.tcp_tw_reuse" /etc/sysctl.conf || echo "net.ipv4.tcp_tw_reuse = 1" | sudo tee -a /etc/sysctl.conf > /dev/null
 sudo sysctl -p
 ```
-# Install Latest Docker
+## Install Latest Docker
 ```
 sudo install -m 0755 -d /etc/apt/keyrings &&
 sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
