@@ -1,5 +1,5 @@
 # Server Setup
-```
+~~~
 sudo apt update					&&
 sudo apt upgrade			-y	&&
 sudo dpkg --configure 	-a		&&
