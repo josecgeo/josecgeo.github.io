@@ -30,7 +30,7 @@ if [ ! -f /swapfile ]; then
 sudo fallocate -l 8G /swapfile &&
 sudo chmod 600 /swapfile &&
 sudo mkswap /swapfile &&
-echo '/swapfile none swap sw,pri=50 0 0' | sudo tee -a /etc/fstab
+echo '/swapfile none swap sw,pri=2 0 0' | sudo tee -a /etc/fstab
 sudo swapoff -a
 sudo swapon -a
 else
@@ -44,7 +44,7 @@ sudo systemctl enable zramswap &&
 sudo systemctl start zramswap &&
 grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/default/zramswap > /dev/null &&
 grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=25" | sudo tee -a /etc/default/zramswap > /dev/null &&
-grep -q "^PRIORITY=" /etc/default/zramswap || echo "PRIORITY=100" | sudo tee -a /etc/default/zramswap > /dev/null &&
+grep -q "^PRIORITY=" /etc/default/zramswap || echo "PRIORITY=1" | sudo tee -a /etc/default/zramswap > /dev/null &&
 sudo systemctl restart zramswap
 ```
 ## Change Sysctl Parameters
