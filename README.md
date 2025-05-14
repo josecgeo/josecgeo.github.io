@@ -40,11 +40,11 @@ fi
 ## Add 25% zRAM Swap Memory
 ```
 sudo apt install -y zram-tools &&
-sudo systemctl enable zramswap &&
-sudo systemctl start zramswap &&
 grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/default/zramswap > /dev/null &&
 grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=25" | sudo tee -a /etc/default/zramswap > /dev/null &&
 grep -q "^PRIORITY=" /etc/default/zramswap || echo "PRIORITY=2" | sudo tee -a /etc/default/zramswap > /dev/null &&
+sudo systemctl enable zramswap &&
+sudo systemctl start zramswap &&
 sudo systemctl restart zramswap
 ```
 ## Change Sysctl Parameters
@@ -68,3 +68,10 @@ echo \
 sudo apt update &&
 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
+## Install Periphery Agent for Komodo
+```
+curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 &&
+sudo systemctl enable periphery &&
+sudo systemctl restart periphery
+```
+
