@@ -70,8 +70,8 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 ```
 ## Install Periphery Agent for Komodo
 ```
-curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 &&
+curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 - --force-service-file &&
 sudo systemctl enable periphery &&
+sudo systemctl status periphery &&
 sudo systemctl restart periphery
 ```
-
