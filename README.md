@@ -1,4 +1,4 @@
-# Server Setup
+# Update and upgrade applications
 ~~~
 sudo apt update &&
 sudo apt upgrade -y &&
