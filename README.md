@@ -1,4 +1,16 @@
-# Debian Based Server Guides
+# Server Guides
+![Last Commit](https://img.shields.io/github/last-commit/josecgeo/josecgeo.github.io)
+- [Debian](#Debian)
+  - [Update And Upgrade](#Update-And-Upgrade)
+  - [Install required packages](#Install-required-packages)
+  - [Install Tuned](#Install-Tuned)
+  - [Add 8GB Swap Memory](#Add-8GB-Swap-Memory)
+  - [Add 25% zRAM Swap Memory](#Add-zRAM-Swap-Memory)
+  - [Change Sysctl Parameters](#Change-Sysctl-Parameters)
+  - [Install Latest Docker](#Install-Latest-Docker)
+  - [Install Periphery Agent for Komodo](#Install-Periphery-Agent-for-Komodo)
+
+# Debian
 ## Update And Upgrade
 ~~~
 sudo apt update &&
@@ -38,7 +50,7 @@ else
 echo "Swapfile already exists."
 fi
 ```
-## Add 25% zRAM Swap Memory
+## Add zRAM Swap Memory
 ```
 sudo apt install -y zram-tools &&
 grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/default/zramswap > /dev/null &&
