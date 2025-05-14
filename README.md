@@ -1,4 +1,4 @@
-# Update and upgrade applications
+# Update and upgrade
 ~~~
 sudo apt update &&
 sudo apt upgrade -y &&
@@ -9,11 +9,15 @@ sudo apt-get clean -y &&
 sudo apt update &&
 sudo apt upgrade -y
 ~~~
+# Install required packages
+```commandline
+sudo apt install ca-certificates curl htop
+```
 # Install Tuned
 ```
 sudo apt update &&
 sudo apt upgrade -y &&
-sudo apt install tuned -y &&
+sudo apt install -y tuned &&
 sudo systemctl enable tuned &&
 sudo systemctl start tuned &&
 sudo tuned-adm profile throughput-performance &&
@@ -33,6 +37,15 @@ else
 echo "Swapfile already exists."
 fi
 ```
+# Add 15% zRAM swap memory
+```
+sudo apt install -y zram-tools &&
+sudo systemctl enable zramswap &&
+sudo systemctl start zramswap &&
+grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/default/zramswap > /dev/null &&
+grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=15" | sudo tee -a /etc/default/zramswap > /dev/null &&
+sudo systemctl restart zramswap
+```
 # Sysctl Parameters
 ```
 grep -q "^vm.swappiness" /etc/sysctl.conf || echo "vm.swappiness = 10" | sudo tee -a /etc/sysctl.conf > /dev/null
@@ -41,4 +54,16 @@ grep -q "^fs.file-max" /etc/sysctl.conf || echo "fs.file-max = 92233720368547758
 grep -q "^net.core.somaxconn" /etc/sysctl.conf || echo "net.core.somaxconn = 8192" | sudo tee -a /etc/sysctl.conf > /dev/null
 grep -q "^net.ipv4.tcp_tw_reuse" /etc/sysctl.conf || echo "net.ipv4.tcp_tw_reuse = 1" | sudo tee -a /etc/sysctl.conf > /dev/null
 sudo sysctl -p
+```
+# Install Latest Docker
+```
+sudo install -m 0755 -d /etc/apt/keyrings &&
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
+sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update &&
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ```
