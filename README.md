@@ -1,14 +1,14 @@
 # Server Guides
 ![Last Commit](https://img.shields.io/github/last-commit/josecgeo/josecgeo.github.io)
-- [Debian](#Debian)
-  - [Update And Upgrade](#Update-And-Upgrade)
-  - [Install required packages](#Install-required-packages)
-  - [Install Tuned](#Install-Tuned)
-  - [Add 8GB Swap Memory](#Add-8GB-Swap-Memory)
-  - [Add 25% zRAM Swap Memory](#Add-zRAM-Swap-Memory)
-  - [Change Sysctl Parameters](#Change-Sysctl-Parameters)
-  - [Install Latest Docker](#Install-Latest-Docker)
-  - [Install Periphery Agent for Komodo](#Install-Periphery-Agent-for-Komodo)
+- [Debian](#debian)
+  - [Update And Upgrade](#update-and-upgrade)
+  - [Install required packages](#install-required-packages)
+  - [Install Tuned](#install-tuned)
+  - [Add 8GB Swap Memory](#add-8gb-swap-memory)
+  - [Add zRAM Swap Memory](#add-zram-swap-memory)
+  - [Change Sysctl Parameters](#change-sysctl-parameters)
+  - [Install Latest Docker](#install-latest-docker)
+  - [Install Periphery Agent for Komodo](#install-periphery-agent-for-komodo)
 
 # Debian
 ## Update And Upgrade
