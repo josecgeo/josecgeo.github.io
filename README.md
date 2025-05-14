@@ -37,13 +37,13 @@ else
 echo "Swapfile already exists."
 fi
 ```
-## Add 15% zRAM Swap Memory
+## Add 25% zRAM Swap Memory
 ```
 sudo apt install -y zram-tools &&
 sudo systemctl enable zramswap &&
 sudo systemctl start zramswap &&
 grep -q "^ALGO=" /etc/default/zramswap || echo "ALGO=lz4" | sudo tee -a /etc/default/zramswap > /dev/null &&
-grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=15" | sudo tee -a /etc/default/zramswap > /dev/null &&
+grep -q "^PERCENT=" /etc/default/zramswap || echo "PERCENT=25" | sudo tee -a /etc/default/zramswap > /dev/null &&
 grep -q "^PRIORITY=" /etc/default/zramswap || echo "PRIORITY=1" | sudo tee -a /etc/default/zramswap > /dev/null &&
 sudo systemctl restart zramswap
 ```
