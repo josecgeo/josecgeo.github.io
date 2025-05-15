@@ -12,6 +12,12 @@
 - [Odoo Installation](#Odoo)
   - [Update And upgrade](#Update-And-Upgrade---Odoo)
   - [Install required packages](#Install-required-packages---Odoo)
+  - [Install wkhtmltopdf 0.12.6.1-3 - Odoo](#Install-wkhtmltopdf-0.12.6.1-3-Odoo)
+  - [Install Required Python Packages - Odoo](#install-required-python-packages---odoo-global-python-environment)
+  - [Installing PostgreSQL 17](#Installing-PostgreSQL-17)
+  - [Optional - Clone the Odoo themes repository](#optional---clone-the-odoo-themes-repository-to-optodoothemes-you-may-change-this-accordingly)
+  - [Setting up odoo.conf](#setting-up-odooconf-at-optodooodoocconf)
+  - [Setting up odoo.service](#setting-up-odooservice-at-optodooodooservice-virtual-python-environment)
 
 # Debian
 ## Update And Upgrade
