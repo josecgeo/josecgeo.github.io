@@ -246,9 +246,15 @@ User=odoo
 Group=odoo
 ExecStart=/usr/bin/python3 /opt/odoo/server/odoo-bin -c /opt/odoo/odoo.conf
 StandardOutput=journal+console
+Restart=always
 [Install]
 WantedBy=multi-user.target
-EOF
+EOF &&
+sudo rm -rf /etc/systemd/system/odoo.service &&
+sudo ln -sf /opt/odoo/odoo.service /etc/systemd/system/odoo.service &&
+sudo systemctl daemon-reload &&
+sudo systemctl enable odoo &&
+sudo systemctl start odoo
 ```
 ## Setting up odoo.service at /opt/odoo/odoo.service (Virtual Python Environment)
 ```
@@ -265,7 +271,13 @@ User=odoo
 Group=odoo
 ExecStart=/opt/odoo/venv/bin/python3 /opt/odoo/server/odoo-bin -c /opt/odoo/odoo.conf
 StandardOutput=journal+console
+Restart=always
 [Install]
 WantedBy=multi-user.target
-EOF
+EOF &&
+sudo rm -rf /etc/systemd/system/odoo.service &&
+sudo ln -sf /opt/odoo/odoo.service /etc/systemd/system/odoo.service &&
+sudo systemctl daemon-reload &&
+sudo systemctl enable odoo &&
+sudo systemctl start odoo
 ```
