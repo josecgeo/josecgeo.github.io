@@ -1,4 +1,4 @@
-# Server Guides
+# Dev Guides
 ![Last Commit](https://img.shields.io/github/last-commit/josecgeo/josecgeo.github.io)
 - [Debian](#debian)
   - [Update And Upgrade](#update-and-upgrade)
@@ -9,6 +9,9 @@
   - [Change Sysctl Parameters](#change-sysctl-parameters)
   - [Install Latest Docker](#install-latest-docker)
   - [Install Periphery Agent for Komodo](#install-periphery-agent-for-komodo)
+- [Odoo Installation](#Odoo-Installation-Guide)
+  - [Update And upgrade](#Update-And-Upgrade---Odoo)
+  - [Install required packages](#Install-required-packages---Odoo)
 
 # Debian
 ## Update And Upgrade
@@ -87,3 +90,33 @@ curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-p
 sudo systemctl enable periphery &&
 sudo systemctl restart periphery
 ```
+# Odoo Installation Guide
+
+## Update And Upgrade - Odoo
+```
+sudo apt update &&
+sudo apt upgrade -y &&
+sudo dpkg --configure -a &&
+sudo apt-get autoremove -y &&
+sudo apt-get install -f -y &&
+sudo apt-get clean -y
+```
+## Install required packages - Odoo
+```
+sudo apt install -y \
+python3 python3-dev python3-venv python3-pip python3-setuptools python3-wheel \
+build-essential libzip-dev libxslt1-dev libldap2-dev libsasl2-dev libjpeg-dev \
+libpq-dev libffi-dev libxml2-dev zlib1g-dev libssl-dev libmysqlclient-dev \
+libjpeg8-dev liblcms2-dev libblas-dev libatlas-base-dev \
+git wget htop curl nginx xfonts-75dpi xfonts-base fontconfig nodejs npm &&
+sudo ln -s /usr/bin/nodejs /usr/bin/node &&
+sudo wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb &&
+sudo wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
+sudo dpkg -i  wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || sudo dpkg -i  wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
+sudo rm -rf wkhtmltox_0.12.6.1-3.bookworm_amd64.deb && sudo rm -rf wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
+sudo npm install -g less less-plugin-clean-css && npm fund -y
+```
+## Install Required Python Packages 
+### Odoo 18
+```
+
