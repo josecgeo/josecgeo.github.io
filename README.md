@@ -9,7 +9,7 @@
   - [Change Sysctl Parameters](#change-sysctl-parameters)
   - [Install Latest Docker](#install-latest-docker)
   - [Install Periphery Agent for Komodo](#install-periphery-agent-for-komodo)
-- [Odoo Installation](#Odoo-Installation-Guide)
+- [Odoo Installation](#Odoo)
   - [Update And upgrade](#Update-And-Upgrade---Odoo)
   - [Install required packages](#Install-required-packages---Odoo)
 
@@ -90,8 +90,7 @@ curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-p
 sudo systemctl enable periphery &&
 sudo systemctl restart periphery
 ```
-# Odoo Installation Guide
-
+# Odoo
 ## Update And Upgrade - Odoo
 ```
 sudo apt update &&
@@ -101,22 +100,62 @@ sudo apt-get autoremove -y &&
 sudo apt-get install -f -y &&
 sudo apt-get clean -y
 ```
-## Install required packages - Odoo
+## Install Required Packages - Odoo
 ```
 sudo apt install -y \
 python3 python3-dev python3-venv python3-pip python3-setuptools python3-wheel \
-build-essential libzip-dev libxslt1-dev libldap2-dev libsasl2-dev libjpeg-dev \
-libpq-dev libffi-dev libxml2-dev zlib1g-dev libssl-dev libmysqlclient-dev \
-libjpeg8-dev liblcms2-dev libblas-dev libatlas-base-dev \
-git wget htop curl nginx xfonts-75dpi xfonts-base fontconfig nodejs npm &&
-sudo ln -s /usr/bin/nodejs /usr/bin/node &&
+python3-pandas python3-cffi python3-certbot-nginx \
+libzip-dev libxslt1-dev libldap2-dev libsasl2-dev libjpeg-dev libpq-dev libffi-dev \
+libxml2-dev libssl-dev libjpeg8-dev liblcms2-dev libblas-dev zlib1g-dev \
+libatlas-base-dev libmysqlclient-dev libfreetype6-dev \
+git wget htop curl zip unzip ncdu fail2ban \
+xfonts-75dpi xfonts-base fontconfig lsb-release gpg xfsprogs \
+build-essential nodejs npm &&
+sudo ln -sf /usr/bin/nodejs /usr/bin/node &&
+sudo npm install -g less less-plugin-clean-css && npm fund
+```
+## Install wkhtmltopdf 0.12.6.1-3 - Odoo
+```
 sudo wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.bookworm_amd64.deb &&
 sudo wget https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
 sudo dpkg -i  wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || sudo dpkg -i  wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
 sudo rm -rf wkhtmltox_0.12.6.1-3.bookworm_amd64.deb && sudo rm -rf wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
-sudo npm install -g less less-plugin-clean-css && npm fund -y
+sudo wkhtmltopdf --version
 ```
-## Install Required Python Packages 
-### Odoo 18
+## Install Required Python Packages - Odoo
+#### Odoo 18
 ```
-
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+setuptools wheel &&
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+asana openpyxl pyzk gdown numpy_utils phonenumbers PyJWT google_auth \
+num2words ofxparse dbfread ebaysdk firebase_admin pdfminer.six qrcode email_validator \
+pyOpenSSL dropbox pyncclient boto3 nextcloud-api-wrapper paramiko astor &&
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+-r https://github.com/odoo/odoo/raw/18.0/requirements.txt
+```
+#### Odoo 17
+```
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+setuptools wheel &&
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+asana openpyxl pyzk gdown numpy_utils phonenumbers PyJWT google_auth \
+num2words ofxparse dbfread ebaysdk firebase_admin pdfminer.six qrcode email_validator \
+pyOpenSSL dropbox pyncclient boto3 nextcloud-api-wrapper paramiko astor &&
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+-r https://github.com/odoo/odoo/raw/17.0/requirements.txt
+```
+## Installing PostgreSQL 17
+```
+sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list' -y  &&
+sudo wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -  &&
+sudo apt update && 
+sudo apt install -y -f \
+postgresql-17
+```
+## Setting up Postgres user for Odoo | User-Odoo Pass-password123$
+```
+sudo -u postgres psql -c "DROP USER IF EXISTS odoo;" &&
+sudo -u postgres psql -c "CREATE USER odoo WITH PASSWORD 'password123$';" &&
+sudo -u postgres psql -c "ALTER USER odoo WITH CREATEDB;"
+```
