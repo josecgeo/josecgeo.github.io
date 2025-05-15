@@ -122,7 +122,7 @@ sudo dpkg -i  wkhtmltox_0.12.6.1-3.bookworm_amd64.deb || sudo dpkg -i  wkhtmltox
 sudo rm -rf wkhtmltox_0.12.6.1-3.bookworm_amd64.deb && sudo rm -rf wkhtmltox_0.12.6.1-3.jammy_amd64.deb &&
 sudo wkhtmltopdf --version
 ```
-## Install Required Python Packages - Odoo
+## Install Required Python Packages - Odoo (Global Python Environment)
 #### Odoo 18
 ```
 sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
@@ -144,6 +144,42 @@ num2words ofxparse dbfread ebaysdk firebase_admin pdfminer.six qrcode email_vali
 pyOpenSSL dropbox pyncclient boto3 nextcloud-api-wrapper paramiko astor &&
 sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
 -r https://github.com/odoo/odoo/raw/17.0/requirements.txt
+sudo pip3 install --upgrade --ignore-installed --no-cache --break-system-packages \
+cryptography==38.0.4 blosc2==2.3.0 numpy==1.26.4 plotly==5.22.0
+```
+## Install Required Python Packages - Odoo (Virtual Python Environment)
+### Setup and activate virtual python environment at /opt/odoo/venv
+```
+python3 -m venv /opt/odoo/venv &&
+source /opt/odoo/venv/bin/activate
+```
+#### Odoo 18
+```
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+setuptools wheel &&
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+asana openpyxl pyzk gdown numpy_utils phonenumbers PyJWT google_auth \
+num2words ofxparse dbfread ebaysdk firebase_admin pdfminer.six qrcode email_validator \
+pyOpenSSL dropbox pyncclient boto3 nextcloud-api-wrapper paramiko astor &&
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+-r https://github.com/odoo/odoo/raw/18.0/requirements.txt
+```
+#### Odoo 17
+```
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+setuptools wheel &&
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+asana openpyxl pyzk gdown numpy_utils phonenumbers PyJWT google_auth \
+num2words ofxparse dbfread ebaysdk firebase_admin pdfminer.six qrcode email_validator \
+pyOpenSSL dropbox pyncclient boto3 nextcloud-api-wrapper paramiko astor &&
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+-r https://github.com/odoo/odoo/raw/17.0/requirements.txt
+sudo pip3 install --upgrade --ignore-installed --no-cache \
+cryptography==38.0.4 blosc2==2.3.0 numpy==1.26.4 plotly==5.22.0
+```
+### Deactivate virtual python environment at /opt/odoo/venv
+```
+deactivate
 ```
 ## Installing PostgreSQL 17
 ```
@@ -158,4 +194,72 @@ postgresql-17
 sudo -u postgres psql -c "DROP USER IF EXISTS odoo;" &&
 sudo -u postgres psql -c "CREATE USER odoo WITH PASSWORD 'password123$';" &&
 sudo -u postgres psql -c "ALTER USER odoo WITH CREATEDB;"
+```
+## Clone the Odoo github repository to /opt/odoo/server (You may change this accordingly)
+### Odoo 18
+```
+sudo git clone https://www.github.com/odoo/odoo.git --depth 1 --branch 18.0 /opt/odoo/server
+```
+### Odoo 17
+```
+sudo git clone https://www.github.com/odoo/odoo.git --depth 1 --branch 17.0 /opt/odoo/server
+```
+## Optional - Clone the Odoo themes repository to /opt/odoo/themes (You may change this accordingly)
+### Odoo 18
+```
+sudo git clone https://github.com/odoo/design-themes.git --depth 1 --branch 18.0 /opt/odoo/themes
+```
+### Odoo 17
+```
+sudo git clone https://github.com/odoo/design-themes.git --depth 1 --branch 17.0 /opt/odoo/themes
+```
+## Setting up odoo.conf at /opt/odoo/odoo.cconf
+```
+sudo tee /opt/odoo/odoo.conf > /dev/null << 'EOF'
+[options]
+db_host = localhost
+db_port = 5432
+db_user = odoo
+db_password = password123$
+logfile = /opt/odoo/odoo.log
+addons_path = /opt/odoo/server/addons, /opt/odoo/server/odoo/addons
+EOF
+```
+## Setting up odoo.service at /opt/odoo/odoo.service (Global Python Environment)
+```
+sudo tee /opt/odoo/odoo.service > /dev/null << 'EOF'
+[Unit]
+Description=Odoo
+Requires=postgresql.service
+After=network.target postgresql.service
+[Service]
+Type=simple
+SyslogIdentifier=odoo
+PermissionsStartOnly=true
+User=odoo
+Group=odoo
+ExecStart=/usr/bin/python3 /opt/odoo/server/odoo-bin -c /opt/odoo/odoo.conf
+StandardOutput=journal+console
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+## Setting up odoo.service at /opt/odoo/odoo.service (Virtual Python Environment)
+```
+sudo tee /opt/odoo/odoo.service > /dev/null << 'EOF'
+[Unit]
+Description=Odoo
+Requires=postgresql.service
+After=network.target postgresql.service
+[Service]
+Type=simple
+SyslogIdentifier=odoo
+PermissionsStartOnly=true
+User=odoo
+Group=odoo
+ExecStart=/opt/odoo/venv/bin/python3 /opt/odoo/server/odoo-bin -c /opt/odoo/odoo.conf
+StandardOutput=journal+console
+[Install]
+WantedBy=multi-user.target
+EOF
 ```
