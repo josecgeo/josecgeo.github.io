@@ -1,6 +1,7 @@
 services:
 
   core:
+    container_name: komodo_core
     image: ghcr.io/moghtech/komodo-core:latest
     labels:
       komodo.skip:
@@ -41,7 +42,8 @@ services:
       KOMODO_GOOGLE_OAUTH_ENABLED: false
 
   mongo:
-    image: mongo
+    container_name: komodo_mongo
+    image: mongo:latest
     labels:
       komodo.skip:
     command: --quiet --wiredTigerCacheSizeGB 0.25
