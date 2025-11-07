@@ -57,7 +57,12 @@ sudo systemctl enable periphery &&
 sudo systemctl start  periphery &&
 sudo systemctl status periphery
 ~~~
-
+# Komodo
+```
+sudo mkdir -p /opt/komodo &&
+sudo curl -L https://raw.githubusercontent.com/josecgeo/josecgeo.github.io/refs/heads/main/server/komodo.yaml -o /opt/komodo/docker-compose.yaml &&
+sudo docker compose -f /opt/komodo/docker-compose.yaml up -d
+```
 # Debian
 ## Update And Upgrade
 ~~~
