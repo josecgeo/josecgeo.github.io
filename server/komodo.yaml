@@ -17,11 +17,11 @@ services:
     environment:
       TZ: Etc/UTC
       KOMODO_DATABASE_ADDRESS: mongo:27017
-      KOMODO_DATABASE_USERNAME: jmpdagdm
-      KOMODO_DATABASE_PASSWORD: jmpdagdm
-      KOMODO_WEBHOOK_SECRET: jmpdagdm
-      KOMODO_JWT_SECRET: jmpdagdm
-      KOMODO_PASSKEY: jmpdagdm
+      KOMODO_DATABASE_USERNAME: C9wzgkMTX1dSxFwr
+      KOMODO_DATABASE_PASSWORD: lo8if1DDcbWw8Gb4
+      KOMODO_WEBHOOK_SECRET: PAyt6tI5EveMQwWv
+      KOMODO_JWT_SECRET: 5nH4VE0m6f2tm45n
+      KOMODO_PASSKEY: 1fz1RHIjeYIH2Asu
       KOMODO_HOST: localhost
       KOMODO_TITLE: josecgeo
       KOMODO_FIRST_SERVER: localhost:8120
@@ -55,8 +55,8 @@ services:
       - komodo
     environment:
       TZ: Etc/UTC
-      MONGO_INITDB_ROOT_USERNAME: jmpdagdm
-      MONGO_INITDB_ROOT_PASSWORD: jmpdagdm
+      MONGO_INITDB_ROOT_USERNAME: C9wzgkMTX1dSxFwr
+      MONGO_INITDB_ROOT_PASSWORD: lo8if1DDcbWw8Gb4
 
 networks:
   komodo:
