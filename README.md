@@ -55,7 +55,7 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 &&
 sudo systemctl enable periphery &&
 sudo systemctl start  periphery &&
-Sudo systemctl status periphery
+sudo systemctl status periphery
 ~~~
 
 # Debian
