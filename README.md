@@ -19,6 +19,41 @@
   - [Setting up odoo.conf](#setting-up-odooconf-at-optodooodoocconf)
   - [Setting up odoo.service](#setting-up-odooservice-at-optodooodooservice-virtual-python-environment)
 
+# Quick Setup
+~~~
+sudo apt update &&
+sudo apt upgrade -y &&
+sudo dpkg --configure -a &&
+sudo apt-get autoremove -y &&
+sudo apt-get install -f -y &&
+sudo apt-get clean -y &&
+grep -q "^vm.swappiness" /etc/sysctl.conf || echo "vm.swappiness = 10" | sudo tee -a /etc/sysctl.conf > /dev/null
+grep -q "^vm.vfs_cache_pressure" /etc/sysctl.conf || echo "vm.vfs_cache_pressure = 50" | sudo tee -a /etc/sysctl.conf > /dev/null
+grep -q "^fs.file-max" /etc/sysctl.conf || echo "fs.file-max = 9223372036854775807" | sudo tee -a /etc/sysctl.conf > /dev/null
+grep -q "^net.core.somaxconn" /etc/sysctl.conf || echo "net.core.somaxconn = 8192" | sudo tee -a /etc/sysctl.conf > /dev/null
+grep -q "^net.ipv4.tcp_tw_reuse" /etc/sysctl.conf || echo "net.ipv4.tcp_tw_reuse = 1" | sudo tee -a /etc/sysctl.conf > /dev/null
+sudo sysctl -p &&
+sudo apt install -y ca-certificates curl wget htop tuned &&
+sudo systemctl enable tuned &&
+sudo systemctl start tuned &&
+sudo tuned-adm profile throughput-performance &&
+sudo systemctl restart tuned &&
+sudo tuned-adm active &&
+sudo install -m 0755 -d /etc/apt/keyrings &&
+sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc &&
+sudo chmod a+r /etc/apt/keyrings/docker.asc &&
+sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/debian
+Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+Components: stable
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+sudo apt update &&
+sudo apt upgrade -y &&
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+~~~
+
 # Debian
 ## Update And Upgrade
 ~~~
