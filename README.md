@@ -51,11 +51,7 @@ Signed-By: /etc/apt/keyrings/docker.asc
 EOF
 sudo apt update &&
 sudo apt upgrade -y &&
-sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin &&
-sudo curl -sSL https://raw.githubusercontent.com/moghtech/komodo/main/scripts/setup-periphery.py | python3 &&
-sudo systemctl enable periphery &&
-sudo systemctl start  periphery &&
-sudo systemctl status periphery
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 ~~~
 # Komodo
 ```
