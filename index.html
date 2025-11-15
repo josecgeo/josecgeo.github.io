@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="A modern, professional markdown-powered single-page application" />
   <title>Markdown Documentation Site</title>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -316,6 +316,20 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
+    }
+
+    .folder-title a {
+      color: inherit;
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .folder-title a:hover {
+      color: var(--accent);
+    }
+
+    .folder-title a.active {
+      color: var(--accent);
     }
 
     .folder-icon {
@@ -1033,7 +1047,21 @@ function buildSidebar() {
     icon.className = 'folder-icon';
     icon.textContent = FOLDER_ICONS[folder] || '📁';
     title.appendChild(icon);
-    title.appendChild(document.createTextNode(titleCase(folder)));
+    
+    // Check if index exists - if so, make folder name clickable to index
+    const hasIndex = CONTENT_STRUCTURE[folder].includes('index');
+    if (hasIndex) {
+      const folderLink = document.createElement('a');
+      folderLink.href = `#/${folder}/index`;
+      folderLink.textContent = titleCase(folder);
+      folderLink.style.textDecoration = 'none';
+      folderLink.style.color = 'inherit';
+      folderLink.setAttribute('data-folder', folder);
+      folderLink.setAttribute('data-file', 'index');
+      title.appendChild(folderLink);
+    } else {
+      title.appendChild(document.createTextNode(titleCase(folder)));
+    }
     
     const foldBtn = document.createElement('div');
     foldBtn.className = 'folder-toggle';
@@ -1045,18 +1073,33 @@ function buildSidebar() {
     const filesDiv = document.createElement('div');
     filesDiv.className = 'files';
     
-    for (const file of CONTENT_STRUCTURE[folder]) {
-      const link = document.createElement('a');
-      link.href = `#/${folder}/${file}`;
-      link.textContent = formatFileName(file);
-      link.setAttribute('data-folder', folder);
-      link.setAttribute('data-file', file);
-      filesDiv.appendChild(link);
+    // Only show non-index files in the files list (index is now the folder name)
+    const nonIndexFiles = CONTENT_STRUCTURE[folder].filter(file => file !== 'index');
+    
+    if (nonIndexFiles.length > 0) {
+      for (const file of nonIndexFiles) {
+        const link = document.createElement('a');
+        link.href = `#/${folder}/${file}`;
+        link.textContent = formatFileName(file);
+        link.setAttribute('data-folder', folder);
+        link.setAttribute('data-file', file);
+        filesDiv.appendChild(link);
+      }
+    } else {
+      // If only index exists, hide the files div
+      filesDiv.style.display = 'none';
     }
 
-    head.addEventListener('click', () => {
-      f.classList.toggle('expanded');
-      foldBtn.textContent = f.classList.contains('expanded') ? '▾' : '▸';
+    head.addEventListener('click', (e) => {
+      // Don't toggle if clicking on the folder link
+      if (e.target.tagName === 'A') {
+        return;
+      }
+      // Only toggle if there are files to show
+      if (nonIndexFiles.length > 0) {
+        f.classList.toggle('expanded');
+        foldBtn.textContent = f.classList.contains('expanded') ? '▾' : '▸';
+      }
     });
 
     f.appendChild(head);
@@ -1075,17 +1118,34 @@ function updateActiveLink() {
   const file = parts[1] || 'index';
   
   // Remove all active classes
-  document.querySelectorAll('.files a').forEach(a => a.classList.remove('active'));
+  document.querySelectorAll('.files a, .folder-title a').forEach(a => a.classList.remove('active'));
   
-  // Add active class to current link
-  const activeLink = document.querySelector(`.files a[data-folder="${folder}"][data-file="${file}"]`);
-  if (activeLink) {
-    activeLink.classList.add('active');
-    // Expand parent folder
-    const folderEl = activeLink.closest('.folder');
-    if (folderEl) {
-      folderEl.classList.add('expanded');
-      folderEl.querySelector('.folder-toggle').textContent = '▾';
+  // Check if it's an index page - highlight the folder title link
+  if (file === 'index') {
+    const folderLink = document.querySelector(`.folder-title a[data-folder="${folder}"]`);
+    if (folderLink) {
+      folderLink.classList.add('active');
+      // Expand parent folder if it has other files
+      const folderEl = folderLink.closest('.folder');
+      if (folderEl) {
+        const filesDiv = folderEl.querySelector('.files');
+        if (filesDiv && filesDiv.children.length > 0) {
+          folderEl.classList.add('expanded');
+          folderEl.querySelector('.folder-toggle').textContent = '▾';
+        }
+      }
+    }
+  } else {
+    // Highlight the file link
+    const activeLink = document.querySelector(`.files a[data-folder="${folder}"][data-file="${file}"]`);
+    if (activeLink) {
+      activeLink.classList.add('active');
+      // Expand parent folder
+      const folderEl = activeLink.closest('.folder');
+      if (folderEl) {
+        folderEl.classList.add('expanded');
+        folderEl.querySelector('.folder-toggle').textContent = '▾';
+      }
     }
   }
 }
@@ -1096,7 +1156,15 @@ function buildBreadcrumb(hash) {
   wrap.innerHTML = '';
   const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
   
-  if (parts.length === 0) {
+  // Don't show breadcrumb on overview/index pages
+  const file = parts[1] || 'index';
+  if (file === 'index' && parts.length <= 1) {
+    wrap.textContent = '';
+    return;
+  }
+  
+  // Don't show breadcrumb if only folder/index (overview page)
+  if (parts.length === 1 || (parts.length === 2 && parts[1] === 'index')) {
     wrap.textContent = '';
     return;
   }
@@ -1112,6 +1180,10 @@ function buildBreadcrumb(hash) {
   let accum = '#';
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
+    // Skip 'index' in breadcrumb path
+    if (p === 'index' && i === parts.length - 1) {
+      continue;
+    }
     accum += '/' + p;
     
     const sep = document.createElement('span');
@@ -1152,13 +1224,26 @@ async function router() {
   
   try {
     const md = await loadMarkdown(folder, file);
-    document.getElementById('content').innerHTML = marked.parse(md);
+    // Configure marked options for better markdown rendering
+    if (typeof marked !== 'undefined') {
+      marked.setOptions({
+        breaks: false,
+        gfm: true,
+        headerIds: true,
+        mangle: false
+      });
+      document.getElementById('content').innerHTML = marked.parse(md);
+    } else {
+      // Fallback if marked is not loaded
+      document.getElementById('content').innerHTML = `<pre>${md}</pre>`;
+    }
     buildBreadcrumb(location.hash || '#/home');
     updateActiveLink();
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   } catch (error) {
+    console.error('Router error:', error);
     document.getElementById('content').innerHTML = `
       <h1>Error</h1>
       <p>Failed to load content. Please try again later.</p>
