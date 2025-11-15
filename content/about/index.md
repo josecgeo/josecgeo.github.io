@@ -1,8 +1,3 @@
----
-menu_position: 3
-menu_title: About
----
-
 # About Us
 
 We are building a *completely static*, filesystem-driven website that makes documentation easy and accessible.
