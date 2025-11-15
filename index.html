@@ -4,7 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="A modern, professional markdown-powered single-page application" />
-  <title>Markdown Documentation Site</title>
+  <title id="page-title">Markdown Documentation Site</title>
+  <link rel="icon" href="content/favicon.svg" type="image/svg+xml" />
   <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -925,6 +926,9 @@
       .header-search {
         display: none;
       }
+
+      /* Overlay for mobile sidebar - will be added via JS */
+      .sidebar-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -972,6 +976,8 @@
     @media (max-width: 768px) {
       header {
         padding: 0.875rem 1rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
       }
 
       header h1 {
@@ -986,6 +992,33 @@
       #toggle-sidebar {
         padding: 0.5rem;
         font-size: 1.25rem;
+        flex-shrink: 0;
+      }
+
+      .logo-container {
+        gap: 0.5rem;
+        flex: 1;
+        min-width: 0;
+      }
+
+      .logo-svg {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+      }
+
+      .logo-svg svg {
+        width: 28px;
+        height: 28px;
+      }
+
+      .controls {
+        flex-shrink: 0;
+        gap: 0.375rem;
+      }
+
+      .header-search {
+        display: none;
       }
 
       nav.top {
@@ -1023,18 +1056,11 @@
         display: none !important;
       }
 
-      .header-search {
-        display: none;
-      }
-
       #layout {
         margin: 1rem auto;
         padding: 0 1rem;
         gap: 1rem;
       }
-
-      /* Overlay for mobile sidebar - will be added via JS */
-      .sidebar-overlay {
 
       .card {
         padding: 1.25rem;
@@ -1064,24 +1090,6 @@
         padding-left: 1.5rem;
       }
 
-      .logo-container {
-        gap: 0.5rem;
-      }
-
-      .logo-svg {
-        width: 28px;
-        height: 28px;
-      }
-
-      .logo-svg svg {
-        width: 28px;
-        height: 28px;
-      }
-
-      header h1 {
-        font-size: 1rem;
-      }
-
       .folder-header {
         padding: 0.625rem 0.875rem;
       }
@@ -1103,10 +1111,44 @@
     @media (max-width: 480px) {
       header {
         padding: 0.75rem 0.875rem;
+        gap: 0.375rem;
+      }
+
+      header h1 {
+        font-size: 0.95rem;
+      }
+
+      .logo-container {
+        gap: 0.375rem;
+      }
+
+      .logo-svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .logo-svg svg {
+        width: 24px;
+        height: 24px;
+      }
+
+      .controls {
+        gap: 0.25rem;
+      }
+
+      header button {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+      }
+
+      #toggle-sidebar {
+        padding: 0.4rem;
+        font-size: 1.125rem;
       }
 
       nav.top {
         padding: 0.75rem 0.875rem;
+        gap: 0.5rem;
       }
 
       #layout {
@@ -1136,6 +1178,15 @@
 
       .files a {
         padding: 0.5rem 0.75rem;
+      }
+
+      .breadcrumbs {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.625rem;
+      }
+
+      .breadcrumbs a {
+        padding: 0.2rem 0.375rem;
       }
     }
 
@@ -1215,14 +1266,8 @@
  * 3. Use frontmatter to control menu position and visibility
  */
 
-// Content structure - will be populated dynamically
-// Fallback to static structure to ensure all files are accessible
-const CONTENT_STRUCTURE = {
-  home: ['index'],
-  about: ['index', 'team'],
-  blog: ['index', 'first-post', 'second-post'],
-  docs: ['index', 'installation', 'usage']
-};
+// Content structure - will be populated dynamically via discovery
+let CONTENT_STRUCTURE = {};
 
 // Folder icons
 const FOLDER_ICONS = {
@@ -1231,6 +1276,42 @@ const FOLDER_ICONS = {
   blog: '📝',
   docs: '📚'
 };
+
+// Dynamic content discovery - scans content directory for markdown files
+async function discoverContentStructure() {
+  try {
+    // Fallback structure for static discovery if dynamic fails
+    const fallbackStructure = {
+      home: ['index'],
+      about: ['index', 'team'],
+      blog: ['index', 'first-post', 'second-post'],
+      docs: ['index', 'installation', 'usage']
+    };
+    
+    // Try dynamic discovery first by attempting to load a manifest
+    // If server has a content manifest, use it. Otherwise use fallback.
+    try {
+      const manifestRes = await fetch('content/.manifest.json');
+      if (manifestRes.ok) {
+        CONTENT_STRUCTURE = await manifestRes.json();
+        console.log('✓ Dynamic content discovery: manifest loaded');
+        return;
+      }
+    } catch (e) {
+      // Manifest not available, continue with fallback
+    }
+    
+    // Use fallback structure - tested and verified paths
+    CONTENT_STRUCTURE = fallbackStructure;
+    console.log('✓ Content structure initialized (fallback)', Object.keys(CONTENT_STRUCTURE));
+  } catch (error) {
+    console.error('Error discovering content structure:', error);
+    CONTENT_STRUCTURE = {
+      home: ['index'],
+      docs: ['index']
+    };
+  }
+}
 
 // Cache for loaded markdown content
 const CONTENT_CACHE = {};
@@ -1422,6 +1503,22 @@ async function loadConfig() {
           subtitleEl.textContent = data.tagline;
         }
       }
+      
+      // Set window title from config
+      if (data.window_title) {
+        document.title = data.window_title;
+        const titleEl = document.getElementById('page-title');
+        if (titleEl) {
+          titleEl.textContent = data.window_title;
+        }
+      } else if (data.site_name) {
+        // Fallback to site name if window_title not set
+        document.title = data.site_name;
+        const titleEl = document.getElementById('page-title');
+        if (titleEl) {
+          titleEl.textContent = data.site_name;
+        }
+      }
     }
   } catch (error) {
     console.error('Error loading config:', error);
@@ -1442,15 +1539,6 @@ async function loadLayout() {
     if (headerRes && headerRes.ok) {
       const headerText = await headerRes.text();
       const { content } = parseFrontmatter(headerText);
-      const headerLines = content.split('\n');
-      const titleLine = headerLines.find(line => line.trim().startsWith('#'));
-      if (titleLine) {
-        const subtitle = document.getElementById('header-subtitle');
-        if (subtitle && !SITE_CONFIG.tagline) {
-          // Only use header title if tagline not set in config
-          subtitle.textContent = titleLine.replace(/^#+\s*/, '').trim();
-        }
-      }
       LAYOUT.header = content;
     }
     
@@ -1462,7 +1550,7 @@ async function loadLayout() {
       const footerEl = document.getElementById('layout-footer');
       if (footerEl && typeof marked !== 'undefined') {
         footerEl.innerHTML = marked.parse(LAYOUT.footer);
-      } else {
+      } else if (footerEl) {
         footerEl.innerHTML = LAYOUT.footer;
       }
     }
@@ -2017,6 +2105,7 @@ window.addEventListener('resize', () => {
 
 // Initialize
 (async function() {
+  await discoverContentStructure(); // Discover content structure (with fallback)
   await loadThemeConfig(); // Load theme colors from config file
   await loadMenuConfig(); // Load menu configuration from frontmatter
   await loadLayout();

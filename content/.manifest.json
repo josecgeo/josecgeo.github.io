@@ -1,0 +1,6 @@
+{
+  "home": ["index"],
+  "about": ["index", "team"],
+  "blog": ["index", "first-post", "second-post"],
+  "docs": ["index", "installation", "usage"]
+}
