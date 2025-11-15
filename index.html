@@ -1107,6 +1107,35 @@ function formatFileName(file) {
 
 // Theme management
 const root = document.documentElement;
+let THEME_CONFIG = null;
+
+// Load theme colors from config file
+async function loadThemeConfig() {
+  try {
+    const response = await fetch('content/theme.json');
+    if (response.ok) {
+      THEME_CONFIG = await response.json();
+      applyThemeColors();
+    }
+  } catch (error) {
+    console.warn('Could not load theme config, using defaults:', error);
+  }
+}
+
+// Apply theme colors to CSS variables
+function applyThemeColors() {
+  if (!THEME_CONFIG) return;
+  
+  const currentTheme = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const colors = THEME_CONFIG[currentTheme];
+  
+  if (colors) {
+    Object.keys(colors).forEach(key => {
+      root.style.setProperty(`--${key}`, colors[key]);
+    });
+  }
+}
+
 function setTheme(t) {
   if (t === 'dark') {
     root.setAttribute('data-theme', 'dark');
@@ -1118,6 +1147,7 @@ function setTheme(t) {
     document.getElementById('theme-text').textContent = 'Dark';
   }
   localStorage.setItem('spa-theme', t);
+  applyThemeColors();
 }
 
 (function() {
@@ -1424,11 +1454,7 @@ function buildBreadcrumb(hash) {
   const nav = document.createElement('div');
   nav.className = 'breadcrumbs';
   
-  const rootLink = document.createElement('a');
-  rootLink.href = '#/home';
-  rootLink.textContent = 'Home';
-  nav.appendChild(rootLink);
-  
+  // Start from first level (folder), don't show Home
   let accum = '#';
   for (let i = 0; i < parts.length; i++) {
     const p = parts[i];
@@ -1438,10 +1464,13 @@ function buildBreadcrumb(hash) {
     }
     accum += '/' + p;
     
-    const sep = document.createElement('span');
-    sep.className = 'separator';
-    sep.textContent = ' / ';
-    nav.appendChild(sep);
+    // Add separator before each item except the first
+    if (i > 0) {
+      const sep = document.createElement('span');
+      sep.className = 'separator';
+      sep.textContent = ' / ';
+      nav.appendChild(sep);
+    }
     
     const a = document.createElement('a');
     a.href = accum;
@@ -1691,6 +1720,7 @@ window.addEventListener('resize', () => {
 
 // Initialize
 (async function() {
+  await loadThemeConfig(); // Load theme colors from config file
   await loadLayout();
   buildSidebar();
   window.addEventListener('hashchange', router);
