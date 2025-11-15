@@ -1,3 +1,8 @@
+---
+menu_position: 2
+menu_title: Documentation
+---
+
 # Documentation
 
 Welcome to the documentation section! Here you'll find comprehensive guides and references.

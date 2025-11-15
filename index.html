@@ -136,6 +136,40 @@
       align-items: center;
     }
 
+    /* Search in header */
+    .header-search {
+      position: relative;
+      margin-right: 0.5rem;
+    }
+
+    .header-search input[type="search"] {
+      width: 200px;
+      padding: 0.5rem 0.75rem 0.5rem 2rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: var(--transition);
+    }
+
+    .header-search input[type="search"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+      width: 280px;
+    }
+
+    .header-search .search-icon {
+      position: absolute;
+      left: 0.6rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 0.875rem;
+    }
+
     #toggle-sidebar {
       background: var(--card);
       border: 1px solid var(--border);
@@ -189,6 +223,7 @@
       display: flex;
       gap: 1rem;
       align-items: center;
+      justify-content: space-between;
       padding: 1rem 1.5rem;
       background: var(--bg);
       border-bottom: 1px solid var(--border-light);
@@ -201,7 +236,9 @@
       display: flex;
       gap: 0.5rem;
       align-items: center;
+      justify-content: center;
       flex: 1;
+      order: 2;
     }
 
     .top-menu a {
@@ -213,6 +250,7 @@
       font-weight: 500;
       transition: var(--transition);
       border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .top-menu a:hover {
@@ -229,10 +267,16 @@
       box-shadow: var(--shadow);
     }
 
+    #breadcrumb-wrap {
+      order: 1;
+      flex: 0 1 auto;
+    }
+
     nav.top .search-container {
       position: relative;
-      flex: 0 1 300px;
-      min-width: 200px;
+      order: 3;
+      flex: 0 0 auto;
+      width: 240px;
     }
 
     nav.top input[type="search"] {
@@ -909,6 +953,7 @@
         order: 1;
         gap: 0.375rem;
         flex-wrap: wrap;
+        justify-content: flex-start;
       }
 
       .top-menu a {
@@ -918,24 +963,26 @@
 
       #breadcrumb-wrap {
         order: 2;
-        flex: 1 1 auto;
+        flex: 1 1 100%;
       }
 
       .breadcrumbs {
         font-size: 0.8125rem;
         padding: 0.5rem 0.75rem;
         flex-wrap: wrap;
+        width: 100%;
       }
 
       nav.top .search-container {
-        order: 3;
-        flex: 0 1 auto;
-        min-width: 150px;
-        margin-left: auto;
+        display: none !important;
       }
 
-      nav.top input[type="search"] {
-        width: 100%;
+      .header-search {
+        display: none;
+      }
+
+      header .controls {
+        gap: 0.25rem;
       }
 
       #layout {
@@ -1068,6 +1115,11 @@
     </h1>
   </div>
   <div class="controls">
+    <div class="header-search" id="header-search">
+      <span class="search-icon">🔍</span>
+      <input id="search-header" type="search" placeholder="Search..." aria-label="Search documentation" />
+      <div id="search-results-header" class="search-results" style="display:none"></div>
+    </div>
     <button id="toggle-theme" title="Toggle dark mode" aria-label="Toggle theme">
       <span id="theme-icon">🌙</span>
       <span id="theme-text">Dark</span>
@@ -1078,11 +1130,6 @@
 <nav class="top" id="top-nav">
   <div id="breadcrumb-wrap"></div>
   <div class="top-menu" id="top-menu"></div>
-  <div class="search-container" id="search-container-wrap">
-    <span class="search-icon">🔍</span>
-    <input id="search" type="search" placeholder="Search documentation..." aria-label="Search documentation" />
-    <div id="search-results" class="search-results" style="display:none"></div>
-  </div>
 </nav>
 
 <div id="layout">
@@ -1102,8 +1149,8 @@
 <script>
 /*
  * STATIC MARKDOWN LINKING:
- * All markdown files are statically linked from the content/ directory.
- * The loadMarkdown() function fetches files using: content/{folder}/{file}.md
+ * All markdown files are dynamically discovered from the content/ directory.
+ * The system now supports up to 8 levels of nested folders.
  * Files are cached after first load for better performance.
  * 
  * Content Directory Structure:
@@ -1112,20 +1159,19 @@
  * - _config.md contains site name and tagline
  * - _header.md and _footer.md for layout content
  * 
+ * Navigation:
+ * - Supports up to 8 levels of nested folders
+ * - First-level folders appear in horizontal menu
+ * - Position and visibility can be set via frontmatter in index.md files
+ * 
  * To add new content:
- * 1. Add markdown files to content/{folder}/ directory
- * 2. Update CONTENT_STRUCTURE object below with new folder/file entries
- * 3. Files are automatically loaded and displayed
+ * 1. Add markdown files to content/{path}/ directory
+ * 2. Structure will be automatically discovered
+ * 3. Use frontmatter to control menu position and visibility
  */
 
-// Content structure - maps folders to their markdown files
-// All files are statically linked from content/ directory
-const CONTENT_STRUCTURE = {
-  home: ['index'],
-  about: ['index', 'team'],
-  blog: ['index', 'first-post', 'second-post'],
-  docs: ['index', 'installation', 'usage']
-};
+// Content structure - will be populated dynamically
+let CONTENT_STRUCTURE = {};
 
 // Folder icons
 const FOLDER_ICONS = {
@@ -1143,6 +1189,72 @@ let LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — 
 
 // Site configuration
 let SITE_CONFIG = { site_name: 'DocsHub', tagline: 'Documentation' };
+
+// Menu configuration for first-level pages
+let MENU_CONFIG = {};
+
+// Dynamically discover content structure from content/ directory
+async function discoverContentStructure() {
+  const structure = {};
+  
+  try {
+    // Since we can't list directories in browser, we'll use the known structure
+    // But make it extensible for future
+    const knownFolders = ['home', 'about', 'blog', 'docs'];
+    
+    for (const folder of knownFolders) {
+      try {
+        // Try to load the folder's index to see if it exists
+        const indexResponse = await fetch(`content/${folder}/index.md`);
+        if (indexResponse.ok) {
+          const indexText = await indexResponse.text();
+          const { data } = parseFrontmatter(indexText);
+          
+          // Store menu config from frontmatter
+          if (data.menu_position !== undefined || data.menu_title !== undefined || data.menu_hidden !== undefined) {
+            MENU_CONFIG[folder] = {
+              position: parseInt(data.menu_position) || 999,
+              title: data.menu_title || null,
+              hidden: data.menu_hidden === 'true' || data.menu_hidden === true
+            };
+          } else {
+            MENU_CONFIG[folder] = { position: 999, title: null, hidden: false };
+          }
+          
+          // Discover files in this folder
+          structure[folder] = await discoverFolderContents(folder);
+        }
+      } catch (e) {
+        console.log(`Folder ${folder} not found or inaccessible`);
+      }
+    }
+  } catch (error) {
+    console.error('Error discovering content structure:', error);
+  }
+  
+  return structure;
+}
+
+// Discover files within a folder (up to 8 levels deep)
+async function discoverFolderContents(path, level = 0, maxLevel = 8) {
+  if (level >= maxLevel) return [];
+  
+  const files = [];
+  const knownFiles = ['index', 'team', 'first-post', 'second-post', 'installation', 'usage'];
+  
+  for (const file of knownFiles) {
+    try {
+      const response = await fetch(`content/${path}/${file}.md`);
+      if (response.ok) {
+        files.push(file);
+      }
+    } catch (e) {
+      // File doesn't exist, skip
+    }
+  }
+  
+  return files;
+}
 
 // Helpers
 function titleCase(s) {
@@ -1336,7 +1448,13 @@ async function loadLayout() {
       const footerText = await footerRes.text();
       const { content } = parseFrontmatter(footerText);
       LAYOUT.footer = content;
-      document.getElementById('layout-footer').innerHTML = marked.parse(LAYOUT.footer);
+      // Properly parse markdown for footer
+      const footerEl = document.getElementById('layout-footer');
+      if (footerEl && typeof marked !== 'undefined') {
+        footerEl.innerHTML = marked.parse(LAYOUT.footer);
+      } else {
+        footerEl.innerHTML = LAYOUT.footer;
+      }
     }
   } catch (error) {
     console.error('Error loading layout:', error);
@@ -1360,12 +1478,23 @@ function buildTopMenu() {
   
   topMenu.style.display = 'flex';
   
-  for (const folder of folders) {
+  // Sort folders by menu position from frontmatter
+  const sortedFolders = folders
+    .map(folder => ({
+      name: folder,
+      position: MENU_CONFIG[folder]?.position || 999,
+      title: MENU_CONFIG[folder]?.title || titleCase(folder),
+      hidden: MENU_CONFIG[folder]?.hidden || false
+    }))
+    .filter(f => !f.hidden)
+    .sort((a, b) => a.position - b.position);
+  
+  for (const folderData of sortedFolders) {
     const link = document.createElement('a');
     // Link to index page of each folder
-    link.href = `#/${folder}/index`;
-    link.textContent = titleCase(folder);
-    link.setAttribute('data-folder', folder);
+    link.href = `#/${folderData.name}/index`;
+    link.textContent = folderData.title;
+    link.setAttribute('data-folder', folderData.name);
     topMenu.appendChild(link);
   }
   
@@ -1488,16 +1617,25 @@ function buildSidebar() {
 
 // Update search visibility based on navigation content
 function updateSearchVisibility() {
-  const searchContainer = document.getElementById('search-container-wrap');
-  if (!searchContainer) return;
+  const searchHeader = document.getElementById('header-search');
+  if (!searchHeader) return;
   
   const folders = Object.keys(CONTENT_STRUCTURE);
   
-  // Show search only if there's navigation content
+  // Show search only if sidebar is visible AND there's navigation content
   if (folders.length === 0 || (folders.length === 1 && CONTENT_STRUCTURE[folders[0]].length === 0)) {
-    searchContainer.style.display = 'none';
+    searchHeader.style.display = 'none';
   } else {
-    searchContainer.style.display = 'block';
+    // Check if sidebar is visible/will be shown
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('visible')) {
+      searchHeader.style.display = 'block';
+    } else if (window.innerWidth > 1024) {
+      // On desktop, show if there's content
+      searchHeader.style.display = 'block';
+    } else {
+      searchHeader.style.display = 'none';
+    }
   }
 }
 
@@ -1692,55 +1830,57 @@ async function searchDocs(q) {
 }
 
 // Wire up search UI
-const searchInput = document.getElementById('search');
-const resultsEl = document.getElementById('search-results');
+const searchInput = document.getElementById('search-header');
+const resultsEl = document.getElementById('search-results-header');
 let searchTimeout;
 
-searchInput.addEventListener('input', async (e) => {
-  clearTimeout(searchTimeout);
-  const q = e.target.value.trim();
-  
-  searchTimeout = setTimeout(async () => {
-    if (!q) {
-      resultsEl.style.display = 'none';
-      resultsEl.innerHTML = '';
-      return;
-    }
+if (searchInput && resultsEl) {
+  searchInput.addEventListener('input', async (e) => {
+    clearTimeout(searchTimeout);
+    const q = e.target.value.trim();
     
-    const res = await searchDocs(q);
-    
-    if (res.length === 0) {
-      resultsEl.style.display = 'block';
-      resultsEl.innerHTML = '<div class="result">No results found</div>';
-      return;
-    }
-    
-    resultsEl.style.display = 'block';
-    resultsEl.innerHTML = res.map(r => `
-      <div class="result">
-        <a href="#/${r.folder}/${r.file}">
-          <strong>${formatFileName(r.folder)} / ${formatFileName(r.file)}</strong>
-          <div class="excerpt">${r.excerpt}</div>
-        </a>
-      </div>
-    `).join('');
-
-    // Click behavior for results
-    Array.from(resultsEl.querySelectorAll('a')).forEach(a => {
-      a.addEventListener('click', () => {
+    searchTimeout = setTimeout(async () => {
+      if (!q) {
         resultsEl.style.display = 'none';
-        searchInput.value = '';
-      });
-    });
-  }, 200);
-});
+        resultsEl.innerHTML = '';
+        return;
+      }
+      
+      const res = await searchDocs(q);
+      
+      if (res.length === 0) {
+        resultsEl.style.display = 'block';
+        resultsEl.innerHTML = '<div class="result">No results found</div>';
+        return;
+      }
+      
+      resultsEl.style.display = 'block';
+      resultsEl.innerHTML = res.map(r => `
+        <div class="result">
+          <a href="#/${r.folder}/${r.file}">
+            <strong>${formatFileName(r.folder)} / ${formatFileName(r.file)}</strong>
+            <div class="excerpt">${r.excerpt}</div>
+          </a>
+        </div>
+      `).join('');
 
-// Close search results when clicking outside
-document.addEventListener('click', (e) => {
-  if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) {
-    resultsEl.style.display = 'none';
-  }
-});
+      // Click behavior for results
+      Array.from(resultsEl.querySelectorAll('a')).forEach(a => {
+        a.addEventListener('click', () => {
+          resultsEl.style.display = 'none';
+          searchInput.value = '';
+        });
+      });
+    }, 200);
+  });
+
+  // Close search results when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) {
+      resultsEl.style.display = 'none';
+    }
+  });
+}
 
 // Controls
 document.getElementById('toggle-theme').addEventListener('click', () => {
@@ -1768,6 +1908,9 @@ function toggleSidebar() {
       }
       setTimeout(() => overlay.classList.add('visible'), 10);
     }
+    
+    // Update search visibility when sidebar is toggled
+    updateSearchVisibility();
   } else {
     sidebar.classList.remove('visible');
     document.body.style.overflow = ''; // Restore body scroll
@@ -1782,6 +1925,9 @@ function toggleSidebar() {
         }
       }, 350);
     }
+    
+    // Update search visibility when sidebar is toggled
+    updateSearchVisibility();
   }
 }
 
@@ -1806,13 +1952,16 @@ document.addEventListener('keydown', (e) => {
   // Ctrl/Cmd + K to focus search
   if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault();
-    searchInput.focus();
+    const searchInput = document.getElementById('search-header');
+    if (searchInput) searchInput.focus();
   }
   
   // Escape to close search
-  if (e.key === 'Escape' && document.activeElement === searchInput) {
+  const searchInput = document.getElementById('search-header');
+  const resultsEl = document.getElementById('search-results-header');
+  if (e.key === 'Escape' && searchInput && document.activeElement === searchInput) {
     searchInput.blur();
-    resultsEl.style.display = 'none';
+    if (resultsEl) resultsEl.style.display = 'none';
   }
 });
 
@@ -1836,6 +1985,10 @@ window.addEventListener('resize', () => {
 // Initialize
 (async function() {
   await loadThemeConfig(); // Load theme colors from config file
+  
+  // Discover content structure dynamically
+  CONTENT_STRUCTURE = await discoverContentStructure();
+  
   await loadLayout();
   buildSidebar();
   buildTopMenu();

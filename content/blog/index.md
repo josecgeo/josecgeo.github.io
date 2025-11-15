@@ -1,3 +1,8 @@
+---
+menu_position: 4
+menu_title: Blog
+---
+
 # Blog
 
 Welcome to our blog! Here you'll find the latest updates, tutorials, and insights.
