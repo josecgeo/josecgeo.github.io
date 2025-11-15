@@ -1,3 +1,8 @@
+---
+menu_position: 1
+menu_title: Home
+---
+
 # Welcome to DocsHub
 
 Welcome to **DocsHub**, your comprehensive documentation platform!
