@@ -340,6 +340,45 @@
       animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
+    /* Search in sidebar for mobile */
+    .sidebar-search {
+      display: none;
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-search input[type="search"] {
+      width: 100%;
+      padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 0.875rem;
+      transition: var(--transition);
+    }
+
+    .sidebar-search input[type="search"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    .sidebar-search .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      font-size: 0.875rem;
+    }
+
+    .sidebar-search-container {
+      position: relative;
+    }
+
     @keyframes slideIn {
       from {
         opacity: 0;
@@ -877,8 +916,15 @@
         animation: none;
       }
 
-      /* Overlay for mobile sidebar - will be added via JS */
-      .sidebar-overlay {
+      /* Show search in sidebar on mobile */
+      .sidebar-search {
+        display: block;
+      }
+
+      /* Hide header search on mobile */
+      .header-search {
+        display: none;
+      }
         position: fixed;
         top: 0;
         left: 0;
@@ -981,15 +1027,14 @@
         display: none;
       }
 
-      header .controls {
-        gap: 0.25rem;
-      }
-
       #layout {
         margin: 1rem auto;
         padding: 0 1rem;
         gap: 1rem;
       }
+
+      /* Overlay for mobile sidebar - will be added via JS */
+      .sidebar-overlay {
 
       .card {
         padding: 1.25rem;
@@ -1171,7 +1216,13 @@
  */
 
 // Content structure - will be populated dynamically
-let CONTENT_STRUCTURE = {};
+// Fallback to static structure to ensure all files are accessible
+const CONTENT_STRUCTURE = {
+  home: ['index'],
+  about: ['index', 'team'],
+  blog: ['index', 'first-post', 'second-post'],
+  docs: ['index', 'installation', 'usage']
+};
 
 // Folder icons
 const FOLDER_ICONS = {
@@ -1193,67 +1244,26 @@ let SITE_CONFIG = { site_name: 'DocsHub', tagline: 'Documentation' };
 // Menu configuration for first-level pages
 let MENU_CONFIG = {};
 
-// Dynamically discover content structure from content/ directory
-async function discoverContentStructure() {
-  const structure = {};
-  
-  try {
-    // Since we can't list directories in browser, we'll use the known structure
-    // But make it extensible for future
-    const knownFolders = ['home', 'about', 'blog', 'docs'];
-    
-    for (const folder of knownFolders) {
-      try {
-        // Try to load the folder's index to see if it exists
-        const indexResponse = await fetch(`content/${folder}/index.md`);
-        if (indexResponse.ok) {
-          const indexText = await indexResponse.text();
-          const { data } = parseFrontmatter(indexText);
-          
-          // Store menu config from frontmatter
-          if (data.menu_position !== undefined || data.menu_title !== undefined || data.menu_hidden !== undefined) {
-            MENU_CONFIG[folder] = {
-              position: parseInt(data.menu_position) || 999,
-              title: data.menu_title || null,
-              hidden: data.menu_hidden === 'true' || data.menu_hidden === true
-            };
-          } else {
-            MENU_CONFIG[folder] = { position: 999, title: null, hidden: false };
-          }
-          
-          // Discover files in this folder
-          structure[folder] = await discoverFolderContents(folder);
-        }
-      } catch (e) {
-        console.log(`Folder ${folder} not found or inaccessible`);
-      }
-    }
-  } catch (error) {
-    console.error('Error discovering content structure:', error);
-  }
-  
-  return structure;
-}
-
-// Discover files within a folder (up to 8 levels deep)
-async function discoverFolderContents(path, level = 0, maxLevel = 8) {
-  if (level >= maxLevel) return [];
-  
-  const files = [];
-  const knownFiles = ['index', 'team', 'first-post', 'second-post', 'installation', 'usage'];
-  
-  for (const file of knownFiles) {
+// Load menu configuration from frontmatter
+async function loadMenuConfig() {
+  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
     try {
-      const response = await fetch(`content/${path}/${file}.md`);
+      const response = await fetch(`content/${folder}/index.md`);
       if (response.ok) {
-        files.push(file);
+        const text = await response.text();
+        const { data } = parseFrontmatter(text);
+        
+        MENU_CONFIG[folder] = {
+          position: parseInt(data.menu_position) || 999,
+          title: data.menu_title || titleCase(folder),
+          hidden: data.menu_hidden === 'true' || data.menu_hidden === true
+        };
       }
     } catch (e) {
-      // File doesn't exist, skip
+      // If we can't load, use defaults
+      MENU_CONFIG[folder] = { position: 999, title: titleCase(folder), hidden: false };
     }
   }
-  
-  return files;
 }
 
 // Helpers
@@ -1535,6 +1545,21 @@ function buildSidebar() {
       sidebarVisible = false;
     });
     sb.appendChild(closeBtn);
+    
+    // Add search in sidebar for mobile
+    const sidebarSearchDiv = document.createElement('div');
+    sidebarSearchDiv.className = 'sidebar-search';
+    sidebarSearchDiv.innerHTML = `
+      <div class="sidebar-search-container">
+        <span class="search-icon">🔍</span>
+        <input id="search-sidebar" type="search" placeholder="Search..." aria-label="Search documentation" />
+        <div id="search-results-sidebar" class="search-results" style="display:none"></div>
+      </div>
+    `;
+    sb.appendChild(sidebarSearchDiv);
+    
+    // Wire up sidebar search
+    setTimeout(() => wireUpSearch('search-sidebar', 'search-results-sidebar'), 100);
   }
   
   for (const folder of Object.keys(CONTENT_STRUCTURE)) {
@@ -1829,12 +1854,15 @@ async function searchDocs(q) {
   return results;
 }
 
-// Wire up search UI
-const searchInput = document.getElementById('search-header');
-const resultsEl = document.getElementById('search-results-header');
-let searchTimeout;
+// Wire up search UI - now supports multiple search inputs
+function wireUpSearch(searchInputId, resultsElId) {
+  const searchInput = document.getElementById(searchInputId);
+  const resultsEl = document.getElementById(resultsElId);
+  
+  if (!searchInput || !resultsEl) return;
+  
+  let searchTimeout;
 
-if (searchInput && resultsEl) {
   searchInput.addEventListener('input', async (e) => {
     clearTimeout(searchTimeout);
     const q = e.target.value.trim();
@@ -1880,6 +1908,11 @@ if (searchInput && resultsEl) {
       resultsEl.style.display = 'none';
     }
   });
+}
+
+// Wire up header search
+if (document.getElementById('search-header')) {
+  wireUpSearch('search-header', 'search-results-header');
 }
 
 // Controls
@@ -1985,10 +2018,7 @@ window.addEventListener('resize', () => {
 // Initialize
 (async function() {
   await loadThemeConfig(); // Load theme colors from config file
-  
-  // Discover content structure dynamically
-  CONTENT_STRUCTURE = await discoverContentStructure();
-  
+  await loadMenuConfig(); // Load menu configuration from frontmatter
   await loadLayout();
   buildSidebar();
   buildTopMenu();
