@@ -193,12 +193,46 @@
       background: var(--bg);
       border-bottom: 1px solid var(--border-light);
       min-height: 60px;
+      flex-wrap: wrap;
+    }
+
+    /* Top Menu - Horizontal first-level navigation */
+    .top-menu {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex: 1;
+    }
+
+    .top-menu a {
+      padding: 0.625rem 1rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+
+    .top-menu a:hover {
+      background: var(--card);
+      color: var(--accent);
+      border-color: var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .top-menu a.active {
+      background: var(--card);
+      color: var(--accent);
+      border-color: var(--accent);
+      box-shadow: var(--shadow);
     }
 
     nav.top .search-container {
       position: relative;
-      flex: 1;
-      max-width: 400px;
+      flex: 0 1 300px;
+      min-width: 200px;
     }
 
     nav.top input[type="search"] {
@@ -637,7 +671,7 @@
     #breadcrumb-wrap {
       display: flex;
       align-items: center;
-      margin-left: auto;
+      flex: 0 1 auto;
     }
 
     .breadcrumbs {
@@ -870,25 +904,38 @@
         gap: 0.75rem;
       }
 
-      nav.top .search-container {
-        max-width: 100%;
+      .top-menu {
         flex: 1 1 100%;
+        order: 1;
+        gap: 0.375rem;
+        flex-wrap: wrap;
+      }
+
+      .top-menu a {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.875rem;
+      }
+
+      #breadcrumb-wrap {
+        order: 2;
+        flex: 1 1 auto;
+      }
+
+      .breadcrumbs {
+        font-size: 0.8125rem;
+        padding: 0.5rem 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      nav.top .search-container {
+        order: 3;
+        flex: 0 1 auto;
+        min-width: 150px;
+        margin-left: auto;
       }
 
       nav.top input[type="search"] {
         width: 100%;
-      }
-
-      #breadcrumb-wrap {
-        width: 100%;
-        margin-left: 0;
-      }
-
-      .breadcrumbs {
-        width: 100%;
-        font-size: 0.8125rem;
-        padding: 0.5rem 0.75rem;
-        flex-wrap: wrap;
       }
 
       #layout {
@@ -1028,13 +1075,14 @@
   </div>
 </header>
 
-<nav class="top">
-  <div class="search-container">
+<nav class="top" id="top-nav">
+  <div id="breadcrumb-wrap"></div>
+  <div class="top-menu" id="top-menu"></div>
+  <div class="search-container" id="search-container-wrap">
     <span class="search-icon">🔍</span>
     <input id="search" type="search" placeholder="Search documentation..." aria-label="Search documentation" />
     <div id="search-results" class="search-results" style="display:none"></div>
   </div>
-  <div id="breadcrumb-wrap"></div>
 </nav>
 
 <div id="layout">
@@ -1295,6 +1343,51 @@ async function loadLayout() {
   }
 }
 
+// Build top horizontal menu for first-level pages
+function buildTopMenu() {
+  const topMenu = document.getElementById('top-menu');
+  if (!topMenu) return;
+  
+  topMenu.innerHTML = '';
+  
+  const folders = Object.keys(CONTENT_STRUCTURE);
+  
+  // Only show menu if there's navigation content
+  if (folders.length === 0) {
+    topMenu.style.display = 'none';
+    return;
+  }
+  
+  topMenu.style.display = 'flex';
+  
+  for (const folder of folders) {
+    const link = document.createElement('a');
+    // Link to index page of each folder
+    link.href = `#/${folder}/index`;
+    link.textContent = titleCase(folder);
+    link.setAttribute('data-folder', folder);
+    topMenu.appendChild(link);
+  }
+  
+  updateTopMenuActive();
+}
+
+// Update active link in top menu
+function updateTopMenuActive() {
+  const hash = location.hash || '#/home';
+  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
+  const folder = parts[0] || 'home';
+  
+  // Remove all active classes from top menu
+  document.querySelectorAll('.top-menu a').forEach(a => a.classList.remove('active'));
+  
+  // Add active class to current folder
+  const activeLink = document.querySelector(`.top-menu a[data-folder="${folder}"]`);
+  if (activeLink) {
+    activeLink.classList.add('active');
+  }
+}
+
     // Build sidebar with collapsible folders
 function buildSidebar() {
   const sb = document.getElementById('sidebar');
@@ -1390,6 +1483,22 @@ function buildSidebar() {
   }
   
   updateActiveLink();
+  updateSearchVisibility();
+}
+
+// Update search visibility based on navigation content
+function updateSearchVisibility() {
+  const searchContainer = document.getElementById('search-container-wrap');
+  if (!searchContainer) return;
+  
+  const folders = Object.keys(CONTENT_STRUCTURE);
+  
+  // Show search only if there's navigation content
+  if (folders.length === 0 || (folders.length === 1 && CONTENT_STRUCTURE[folders[0]].length === 0)) {
+    searchContainer.style.display = 'none';
+  } else {
+    searchContainer.style.display = 'block';
+  }
 }
 
 // Update active link in sidebar
@@ -1430,6 +1539,8 @@ function updateActiveLink() {
       }
     }
   }
+  
+  updateTopMenuActive();
 }
 
 // Breadcrumbs
@@ -1500,6 +1611,7 @@ async function router() {
     `;
     buildBreadcrumb(location.hash || '#/home');
     updateActiveLink();
+    updateTopMenuActive();
     return;
   }
   
@@ -1520,6 +1632,7 @@ async function router() {
     }
     buildBreadcrumb(location.hash || '#/home');
     updateActiveLink();
+    updateTopMenuActive();
     
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1714,7 +1827,9 @@ window.addEventListener('resize', () => {
       toggleSidebar();
     }
     buildSidebar();
+    buildTopMenu();
     updateActiveLink();
+    updateTopMenuActive();
   }, 250);
 });
 
@@ -1723,6 +1838,8 @@ window.addEventListener('resize', () => {
   await loadThemeConfig(); // Load theme colors from config file
   await loadLayout();
   buildSidebar();
+  buildTopMenu();
+  updateSearchVisibility();
   window.addEventListener('hashchange', router);
   window.addEventListener('load', () => {
     router();
