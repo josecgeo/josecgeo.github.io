@@ -101,6 +101,15 @@
       width: 32px;
       height: 32px;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-svg svg {
+      width: 32px;
+      height: 32px;
+      display: block;
     }
 
     header h1 {
@@ -753,18 +762,9 @@
     <span>☰</span>
   </button>
   <div class="logo-container">
-    <svg class="logo-svg" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="6" fill="url(#gradient)"/>
-      <path d="M10 16L14 20L22 12" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
-      <defs>
-        <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#3b82f6"/>
-          <stop offset="1" stop-color="#2563eb"/>
-        </linearGradient>
-      </defs>
-    </svg>
+    <div id="logo-container" class="logo-svg"></div>
     <h1 id="header-title">
-      <span class="site-name">DocsHub</span>
+      <span class="site-name" id="site-name">DocsHub</span>
       <span>,</span>
       <span id="header-subtitle">Documentation</span>
     </h1>
@@ -807,6 +807,12 @@
  * The loadMarkdown() function fetches files using: content/{folder}/{file}.md
  * Files are cached after first load for better performance.
  * 
+ * Content Directory Structure:
+ * - Only .md files (markdown) and directories
+ * - logo.svg is allowed for the site logo
+ * - _config.md contains site name and tagline
+ * - _header.md and _footer.md for layout content
+ * 
  * To add new content:
  * 1. Add markdown files to content/{folder}/ directory
  * 2. Update CONTENT_STRUCTURE object below with new folder/file entries
@@ -835,6 +841,9 @@ const CONTENT_CACHE = {};
 
 // Layout content
 let LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — Built with ❤️` };
+
+// Site configuration
+let SITE_CONFIG = { site_name: 'DocsHub', tagline: 'Documentation' };
 
 // Helpers
 function titleCase(s) {
@@ -889,9 +898,91 @@ async function loadMarkdown(folder, file) {
   }
 }
 
+// Parse frontmatter from markdown
+function parseFrontmatter(text) {
+  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
+  const match = text.match(frontmatterRegex);
+  if (!match) return { data: {}, content: text };
+  
+  const frontmatterText = match[1];
+  const content = text.replace(frontmatterRegex, '');
+  const data = {};
+  
+  frontmatterText.split('\n').forEach(line => {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex > 0) {
+      const key = line.substring(0, colonIndex).trim();
+      let value = line.substring(colonIndex + 1).trim();
+      // Remove quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) || 
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.slice(1, -1);
+      }
+      data[key] = value;
+    }
+  });
+  
+  return { data, content };
+}
+
+// Load logo SVG from content directory
+async function loadLogo() {
+  try {
+    const response = await fetch('content/logo.svg');
+    if (response.ok) {
+      const svgText = await response.text();
+      const logoContainer = document.getElementById('logo-container');
+      if (logoContainer) {
+        logoContainer.innerHTML = svgText;
+        // Make sure SVG scales properly
+        const svg = logoContainer.querySelector('svg');
+        if (svg) {
+          svg.setAttribute('class', 'logo-svg');
+          svg.setAttribute('width', '32');
+          svg.setAttribute('height', '32');
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error loading logo:', error);
+  }
+}
+
+// Load site configuration
+async function loadConfig() {
+  try {
+    const response = await fetch('content/_config.md');
+    if (response.ok) {
+      const configText = await response.text();
+      const { data } = parseFrontmatter(configText);
+      
+      if (data.site_name) {
+        SITE_CONFIG.site_name = data.site_name;
+        const siteNameEl = document.getElementById('site-name');
+        if (siteNameEl) {
+          siteNameEl.textContent = data.site_name;
+        }
+      }
+      
+      if (data.tagline) {
+        SITE_CONFIG.tagline = data.tagline;
+        const subtitleEl = document.getElementById('header-subtitle');
+        if (subtitleEl) {
+          subtitleEl.textContent = data.tagline;
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error loading config:', error);
+  }
+}
+
 // Load layout files
 async function loadLayout() {
   try {
+    // Load config and logo first
+    await Promise.all([loadConfig(), loadLogo()]);
+    
     const [headerRes, footerRes] = await Promise.all([
       fetch('content/_header.md').catch(() => null),
       fetch('content/_footer.md').catch(() => null)
@@ -899,20 +990,23 @@ async function loadLayout() {
     
     if (headerRes && headerRes.ok) {
       const headerText = await headerRes.text();
-      const headerLines = headerText.split('\n');
+      const { content } = parseFrontmatter(headerText);
+      const headerLines = content.split('\n');
       const titleLine = headerLines.find(line => line.trim().startsWith('#'));
       if (titleLine) {
         const subtitle = document.getElementById('header-subtitle');
-        if (subtitle) {
+        if (subtitle && !SITE_CONFIG.tagline) {
+          // Only use header title if tagline not set in config
           subtitle.textContent = titleLine.replace(/^#+\s*/, '').trim();
         }
       }
-      LAYOUT.header = headerText;
+      LAYOUT.header = content;
     }
     
     if (footerRes && footerRes.ok) {
-      LAYOUT.footer = await footerRes.text();
-      LAYOUT.footer = LAYOUT.footer.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
+      const footerText = await footerRes.text();
+      const { content } = parseFrontmatter(footerText);
+      LAYOUT.footer = content;
       document.getElementById('layout-footer').innerHTML = marked.parse(LAYOUT.footer);
     }
   } catch (error) {
@@ -1212,86 +1306,6 @@ document.addEventListener('keydown', (e) => {
   });
   router(); // Load initial page
 })();
-
-/*
- * SUGGESTED FEATURES TO ADD:
- * 
- * 1. PRINT/EXPORT FUNCTIONALITY
- *    - Add "Print" button to export current page as PDF
- *    - Export entire documentation as a single PDF
- *    - Print-friendly CSS styles
- * 
- * 2. TABLE OF CONTENTS (TOC)
- *    - Auto-generate TOC from markdown headings
- *    - Sticky TOC sidebar for long documents
- *    - Click to jump to sections
- * 
- * 3. VERSION HISTORY / CHANGELOG
- *    - Track changes to markdown files
- *    - Show last modified date for each page
- *    - Git integration to show commit history
- * 
- * 4. COMMENTS/DISCUSSIONS
- *    - Add comment system (e.g., Giscus, Utterances)
- *    - Allow users to comment on specific sections
- *    - GitHub Discussions integration
- * 
- * 5. SHARE FUNCTIONALITY
- *    - Share buttons for social media
- *    - Copy link to specific section
- *    - Generate shareable preview cards
- * 
- * 6. READING PROGRESS
- *    - Progress bar showing reading position
- *    - Estimated reading time for each page
- *    - "Last read" position tracking
- * 
- * 7. ADVANCED SEARCH
- *    - Search filters (by folder, date, tags)
- *    - Search result highlighting
- *    - Search history
- *    - Fuzzy search support
- * 
- * 8. TAGS/CATEGORIES
- *    - Add tags to markdown frontmatter
- *    - Filter content by tags
- *    - Tag cloud visualization
- * 
- * 9. RELATED ARTICLES
- *    - Auto-suggest related content
- *    - "Next" and "Previous" navigation
- *    - Recently viewed pages
- * 
- * 10. MULTI-LANGUAGE SUPPORT
- *     - i18n for UI elements
- *     - Language switcher
- *     - RTL language support
- * 
- * 11. ANALYTICS
- *     - Page view tracking
- *     - Popular pages section
- *     - Search analytics
- * 
- * 12. ACCESSIBILITY ENHANCEMENTS
- *     - Screen reader optimizations
- *     - High contrast mode
- *     - Font size controls
- *     - Reduced motion support
- * 
- * 13. OFFLINE SUPPORT
- *     - Service Worker for offline access
- *     - PWA capabilities
- *     - Install prompt
- * 
- * 14. CODE SYNTAX HIGHLIGHTING
- *     - Integrate Prism.js or Highlight.js
- *     - Line numbers
- *     - Copy code button
- * 
- * 15. MATH EQUATIONS
- *     - KaTeX or MathJax integration
- *     - Support for LaTeX math in markdown
- */
 </script>
 </body>
 </html>
