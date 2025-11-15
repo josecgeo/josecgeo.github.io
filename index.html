@@ -51,7 +51,7 @@
 <body>
 
 <header>
-  <h1>Vanilla Markdown SPA</h1>
+  <h1 id="header-title">Vanilla Markdown SPA</h1>
   <div class="controls">
     <button id="toggle-theme" title="Toggle dark mode">Toggle Theme</button>
     <button id="toggle-sidebar" title="Toggle sidebar">Toggle Sidebar</button>
@@ -79,39 +79,19 @@
 </footer>
 
 <script>
-/* ========================= Sample "filesystem" DATA ========================= */
-const CONTENT = {
-  home: { index: `# Welcome
-This is the **home** page. Use the sidebar to navigate.` },
-  docs: {
-    index: `# Docs
-Welcome to the docs. Explore the topics.`,
-    intro: `# Introduction
-This Single Page App loads markdown dynamically from a client-side "filesystem" object.`,
-    setup: `# Setup
-1. Clone repo
-2. Serve files with a static server
-
-\`\`\`sh
-python -m http.server 8000
-\`\`\``,
-    api: `# API
-Details about the imaginary API.`
-  },
-  guides: {
-    index: `# Guides
-A list of practical guides.`,
-    first: `# First Guide
-How to do the first thing.`,
-    advanced: `# Advanced Guide
-Deep-dive into the advanced topics.`
-  },
-  contact: { index: `# Contact
-Email: hello@example.com` }
+// Content structure - will be populated from actual files
+const CONTENT_STRUCTURE = {
+  home: ['index'],
+  about: ['index', 'team'],
+  blog: ['index', 'first-post', 'second-post'],
+  docs: ['index', 'installation', 'usage']
 };
 
-const LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — Built with ❤️` };
-/* =========================================================================== */
+// Cache for loaded markdown content
+const CONTENT_CACHE = {};
+
+// Layout content
+let LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — Built with ❤️` };
 
 // Helpers
 function titleCase(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
@@ -121,10 +101,62 @@ const root = document.documentElement;
 function setTheme(t){ if(t==='dark') root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme'); localStorage.setItem('spa-theme',t)}
 (function(){ const saved = localStorage.getItem('spa-theme')||'light'; setTheme(saved); })();
 
+// Load markdown file from content directory
+async function loadMarkdown(folder, file) {
+  const cacheKey = `${folder}/${file}`;
+  if (CONTENT_CACHE[cacheKey]) {
+    return CONTENT_CACHE[cacheKey];
+  }
+  
+  try {
+    const path = `content/${folder}/${file}.md`;
+    const response = await fetch(path);
+    if (!response.ok) {
+      throw new Error(`Failed to load: ${path}`);
+    }
+    const text = await response.text();
+    CONTENT_CACHE[cacheKey] = text;
+    return text;
+  } catch (error) {
+    console.error('Error loading markdown:', error);
+    return `# Error\n\nFailed to load content: ${folder}/${file}`;
+  }
+}
+
+// Load layout files
+async function loadLayout() {
+  try {
+    const [headerRes, footerRes] = await Promise.all([
+      fetch('content/_header.md').catch(() => null),
+      fetch('content/_footer.md').catch(() => null)
+    ]);
+    
+    if (headerRes && headerRes.ok) {
+      const headerText = await headerRes.text();
+      // Extract title from header (first line or first # heading)
+      const headerLines = headerText.split('\n');
+      const titleLine = headerLines.find(line => line.trim().startsWith('#'));
+      if (titleLine) {
+        document.getElementById('header-title').textContent = titleLine.replace(/^#+\s*/, '').trim();
+      }
+      LAYOUT.header = headerText;
+    }
+    
+    if (footerRes && footerRes.ok) {
+      LAYOUT.footer = await footerRes.text();
+      // Remove frontmatter if present
+      LAYOUT.footer = LAYOUT.footer.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
+      document.getElementById('layout-footer').innerHTML = marked.parse(LAYOUT.footer);
+    }
+  } catch (error) {
+    console.error('Error loading layout:', error);
+  }
+}
+
 // Build sidebar with collapsible folders
 function buildSidebar(){
   const sb = document.getElementById('sidebar'); sb.innerHTML='';
-  for(const folder of Object.keys(CONTENT)){
+  for(const folder of Object.keys(CONTENT_STRUCTURE)){
     const f = document.createElement('div'); f.className='folder';
     const head = document.createElement('div'); head.className='folder-header';
     const title = document.createElement('div'); title.className='folder-title'; title.textContent = titleCase(folder);
@@ -132,8 +164,11 @@ function buildSidebar(){
     head.appendChild(title); head.appendChild(foldBtn);
 
     const filesDiv = document.createElement('div'); filesDiv.className='files';
-    for(const file of Object.keys(CONTENT[folder])){
-      const link = document.createElement('a'); link.href = `#/${folder}/${file}`; link.textContent = file === 'index' ? 'Overview' : file; filesDiv.appendChild(link);
+    for(const file of CONTENT_STRUCTURE[folder]){
+      const link = document.createElement('a'); 
+      link.href = `#/${folder}/${file}`; 
+      link.textContent = file === 'index' ? 'Overview' : file.replace(/-/g, ' '); 
+      filesDiv.appendChild(link);
     }
 
     head.addEventListener('click', ()=>{
@@ -161,7 +196,7 @@ function buildBreadcrumb(hash){
   for(let i=0;i<parts.length;i++){
     const p = parts[i]; accum += '/' + p;
     const sep = document.createElement('span'); sep.textContent=' / '; sep.style.color='var(--muted)'; nav.appendChild(sep);
-    const a = document.createElement('a'); a.href = accum; a.textContent = p === 'index' ? 'Overview' : p; a.style.marginLeft='6px'; a.style.color='var(--muted)'; nav.appendChild(a);
+    const a = document.createElement('a'); a.href = accum; a.textContent = p === 'index' ? 'Overview' : p.replace(/-/g, ' '); a.style.marginLeft='6px'; a.style.color='var(--muted)'; nav.appendChild(a);
   }
   wrap.appendChild(nav);
 }
@@ -172,23 +207,53 @@ async function router(){
   const parts = raw.replace(/^#\//,'').split('/').filter(Boolean);
   const folder = parts[0] || 'home';
   const file = parts[1] || 'index';
-  const md = (CONTENT[folder] && CONTENT[folder][file]) ? CONTENT[folder][file] : `# 404
-Page not found: ${folder}/${file}`;
+  
+  // Check if folder exists in structure
+  if (!CONTENT_STRUCTURE[folder] || !CONTENT_STRUCTURE[folder].includes(file)) {
+    document.getElementById('content').innerHTML = `<h1>404</h1><p>Page not found: ${folder}/${file}</p>`;
+    buildBreadcrumb(location.hash || '#/home');
+    return;
+  }
+  
+  const md = await loadMarkdown(folder, file);
   document.getElementById('content').innerHTML = marked.parse(md);
   buildBreadcrumb(location.hash || '#/home');
 }
 
-// Search: simple full-text search through CONTENT
-function searchDocs(q){
+// Search: simple full-text search through loaded content
+async function searchDocs(q){
   if(!q) return [];
   q = q.toLowerCase();
   const results = [];
-  for(const folder of Object.keys(CONTENT)){
-    for(const file of Object.keys(CONTENT[folder])){
-      const text = (file + ' ' + CONTENT[folder][file]).toLowerCase();
-      if(text.includes(q)){
-        results.push({folder,file,excerpt: CONTENT[folder][file].slice(0,120).replace(/
-/g,' ')});
+  
+  // Load all content for search (or search cached content)
+  for(const folder of Object.keys(CONTENT_STRUCTURE)){
+    for(const file of CONTENT_STRUCTURE[folder]){
+      const cacheKey = `${folder}/${file}`;
+      let content = CONTENT_CACHE[cacheKey];
+      
+      // If not cached, try to load it
+      if (!content) {
+        try {
+          const response = await fetch(`content/${folder}/${file}.md`);
+          if (response.ok) {
+            content = await response.text();
+            CONTENT_CACHE[cacheKey] = content;
+          }
+        } catch (e) {
+          continue;
+        }
+      }
+      
+      if (content) {
+        const text = (file + ' ' + content).toLowerCase();
+        if(text.includes(q)){
+          results.push({
+            folder,
+            file,
+            excerpt: content.slice(0,120).replace(/\n/g,' ')
+          });
+        }
       }
     }
   }
@@ -199,12 +264,12 @@ function searchDocs(q){
 const searchInput = document.getElementById('search');
 const resultsEl = document.getElementById('search-results');
 let searchTimeout;
-searchInput.addEventListener('input', (e)=>{
+searchInput.addEventListener('input', async (e)=>{
   clearTimeout(searchTimeout);
   const q = e.target.value.trim();
-  searchTimeout = setTimeout(()=>{
+  searchTimeout = setTimeout(async ()=>{
     if(!q){ resultsEl.style.display='none'; resultsEl.innerHTML=''; return }
-    const res = searchDocs(q);
+    const res = await searchDocs(q);
     if(res.length===0){ resultsEl.style.display='block'; resultsEl.innerHTML = '<div class="result">No results</div>'; return }
     resultsEl.style.display='block';
     resultsEl.innerHTML = res.map(r=>`<div class="result"><a href="#/${r.folder}/${r.file}"><strong>${r.folder}/${r.file}</strong></a><div style="color:var(--muted);font-size:13px">${r.excerpt}…</div></div>`).join('');
@@ -228,10 +293,14 @@ document.getElementById('toggle-sidebar').addEventListener('click', ()=>{
 });
 
 // Init
-buildSidebar();
-window.addEventListener('hashchange', router);
-window.addEventListener('load', ()=>{ router(); document.getElementById('layout-footer').textContent = LAYOUT.footer });
-
+(async function() {
+  await loadLayout();
+  buildSidebar();
+  window.addEventListener('hashchange', router);
+  window.addEventListener('load', ()=>{ router(); });
+  router(); // Load initial page
+})();
 </script>
 </body>
 </html>
+
