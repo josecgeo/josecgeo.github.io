@@ -1,2218 +1,1047 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta name="description" content="A modern, professional markdown-powered single-page application" />
-  <title id="page-title">Markdown Documentation Site</title>
-  <link rel="icon" href="content/favicon.svg" type="image/svg+xml" />
-  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #fafbfc;
-      --card: #ffffff;
-      --muted: #6b7280;
-      --muted-light: #9ca3af;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --text: #111827;
-      --text-secondary: #374151;
-      --nav: #ffffff;
-      --border: #e5e7eb;
-      --border-light: #f3f4f6;
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-      --radius: 12px;
-      --radius-sm: 8px;
-      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    [data-theme="dark"] {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --muted: #94a3b8;
-      --muted-light: #64748b;
-      --accent: #60a5fa;
-      --accent-hover: #3b82f6;
-      --text: #f1f5f9;
-      --text-secondary: #cbd5e1;
-      --nav: #1e293b;
-      --border: #334155;
-      --border-light: #1e293b;
-      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      margin: 0;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      font-size: 16px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* Header */
-    header {
-      background: var(--nav);
-      color: var(--text);
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      border-bottom: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.8);
-      transition: var(--transition);
-    }
-
-    [data-theme="dark"] header {
-      background: rgba(30, 41, 59, 0.8);
-    }
-
-    .logo-container {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      flex: 1;
-    }
-
-    .logo-svg {
-      width: 32px;
-      height: 32px;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .logo-svg svg {
-      width: 32px;
-      height: 32px;
-      display: block;
-    }
-
-    header h1 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin: 0;
-      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    header .site-name {
-      color: var(--text);
-      -webkit-text-fill-color: var(--text);
-    }
-
-    header .controls {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-
-    /* Search in header */
-    .header-search {
-      position: relative;
-      margin-right: 0.5rem;
-    }
-
-    .header-search input[type="search"] {
-      width: 200px;
-      padding: 0.5rem 0.75rem 0.5rem 2rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text);
-      font-size: 0.875rem;
-      transition: var(--transition);
-    }
-
-    .header-search input[type="search"]:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-      width: 280px;
-    }
-
-    .header-search .search-icon {
-      position: absolute;
-      left: 0.6rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      pointer-events: none;
-      font-size: 0.875rem;
-    }
-
-    #toggle-sidebar {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.5rem 0.75rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 1.125rem;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: auto;
-    }
-
-    #toggle-sidebar:hover {
-      background: var(--border-light);
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
-    }
-
-    header button {
-      background: var(--card);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 0.5rem 1rem;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: var(--transition);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    header button:hover {
-      background: var(--border-light);
-      border-color: var(--accent);
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
-    }
-
-    header button:active {
-      transform: translateY(0);
-    }
-
-    /* Navigation Bar */
-    nav.top {
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem 1.5rem;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border-light);
-      min-height: 60px;
-      flex-wrap: wrap;
-    }
-
-    /* Top Menu - Horizontal first-level navigation */
-    .top-menu {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-      justify-content: center;
-      flex: 1;
-      order: 2;
-    }
-
-    .top-menu a {
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius-sm);
-      text-decoration: none;
-      color: var(--text-secondary);
-      font-size: 0.9375rem;
-      font-weight: 500;
-      transition: var(--transition);
-      border: 1px solid transparent;
-      white-space: nowrap;
-    }
-
-    .top-menu a:hover {
-      background: var(--card);
-      color: var(--accent);
-      border-color: var(--border);
-      box-shadow: var(--shadow);
-    }
-
-    .top-menu a.active {
-      background: var(--card);
-      color: var(--accent);
-      border-color: var(--accent);
-      box-shadow: var(--shadow);
-    }
-
-    #breadcrumb-wrap {
-      order: 1;
-      flex: 0 1 auto;
-    }
-
-    nav.top .search-container {
-      position: relative;
-      order: 3;
-      flex: 0 0 auto;
-      width: 240px;
-    }
-
-    nav.top input[type="search"] {
-      width: 100%;
-      padding: 0.75rem 1rem 0.75rem 2.5rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--card);
-      color: var(--text);
-      font-size: 0.9375rem;
-      transition: var(--transition);
-    }
-
-    nav.top input[type="search"]:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    nav.top input[type="search"]::placeholder {
-      color: var(--muted);
-    }
-
-    nav.top .search-icon {
-      position: absolute;
-      left: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      pointer-events: none;
-    }
-
-    /* Layout */
-    #layout {
-      display: flex;
-      gap: 1.5rem;
-      max-width: 1400px;
-      margin: 2rem auto;
-      padding: 0 1.5rem;
-    }
-
-    /* Sidebar */
-    #sidebar {
-      width: 280px;
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: var(--shadow-md);
-      height: calc(100vh - 200px);
-      overflow-y: auto;
-      overflow-x: hidden;
-      position: sticky;
-      top: 100px;
-      border: 1px solid var(--border-light);
-      transition: var(--transition);
-      display: none;
-    }
-
-    #sidebar.visible {
-      display: block;
-      animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    /* Search in sidebar for mobile */
-    .sidebar-search {
-      display: none;
-      margin-bottom: 1rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .sidebar-search input[type="search"] {
-      width: 100%;
-      padding: 0.625rem 0.875rem 0.625rem 2.25rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 0.875rem;
-      transition: var(--transition);
-    }
-
-    .sidebar-search input[type="search"]:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-    }
-
-    .sidebar-search .search-icon {
-      position: absolute;
-      left: 0.75rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      pointer-events: none;
-      font-size: 0.875rem;
-    }
-
-    .sidebar-search-container {
-      position: relative;
-    }
-
-    @keyframes slideIn {
-      from {
-        opacity: 0;
-        transform: translateX(-30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    #sidebar::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    #sidebar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    #sidebar::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 3px;
-    }
-
-    #sidebar::-webkit-scrollbar-thumb:hover {
-      background: var(--muted-light);
-    }
-
-    .folder {
-      margin-bottom: 0.75rem;
-    }
-
-    .folder-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      cursor: pointer;
-      padding: 0.75rem 1rem;
-      border-radius: var(--radius-sm);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      user-select: none;
-      position: relative;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .folder-header::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 0;
-      bottom: 0;
-      width: 0;
-      background: var(--accent);
-      border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-      transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      opacity: 0.1;
-    }
-
-    .folder-header:hover {
-      background: var(--border-light);
-      transform: translateX(2px);
-    }
-
-    .folder-header:hover::before {
-      width: 4px;
-    }
-
-    .folder-title {
-      font-weight: 600;
-      font-size: 0.9375rem;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 0.625rem;
-      flex: 1;
-    }
-
-    .folder-title a {
-      color: inherit;
-      text-decoration: none;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      padding: 0.25rem 0.5rem;
-      margin: -0.25rem -0.5rem;
-      border-radius: 4px;
-      position: relative;
-      display: inline-block;
-    }
-
-    .folder-title a::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0.5rem;
-      right: 0.5rem;
-      height: 2px;
-      background: var(--accent);
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .folder-title a:hover {
-      color: var(--accent);
-      transform: translateX(3px);
-    }
-
-    .folder-title a:hover::after {
-      transform: scaleX(1);
-    }
-
-    .folder-title a.active {
-      color: var(--accent);
-    }
-
-    .folder-title a.active::after {
-      transform: scaleX(1);
-    }
-
-    .folder-icon {
-      font-size: 0.875rem;
-      opacity: 0.7;
-      transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .folder-header:hover .folder-icon {
-      transform: scale(1.1);
-      opacity: 1;
-    }
-
-    .folder-toggle {
-      font-size: 0.75rem;
-      opacity: 0.6;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      transform: rotate(0deg);
-    }
-
-    .folder-header:hover .folder-toggle {
-      opacity: 1;
-    }
-
-    .folder.expanded .folder-toggle {
-      transform: rotate(90deg);
-    }
-
-    .files {
-      padding-left: 1.75rem;
-      margin-top: 0.5rem;
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), margin-top 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-      opacity: 0;
-    }
-
-    .folder.expanded .files {
-      max-height: 1000px;
-      margin-top: 0.75rem;
-      opacity: 1;
-    }
-
-    .files a {
-      display: block;
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius-sm);
-      text-decoration: none;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      margin-bottom: 0.375rem;
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
-    }
-
-    .files a::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 3px;
-      height: 0;
-      background: var(--accent);
-      border-radius: 0 2px 2px 0;
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .files a:hover {
-      background: var(--border-light);
-      color: var(--text);
-      padding-left: 1.25rem;
-      transform: translateX(3px);
-    }
-
-    .files a:hover::before {
-      height: 60%;
-    }
-
-    .files a.active {
-      background: rgba(59, 130, 246, 0.1);
-      color: var(--accent);
-      font-weight: 500;
-      padding-left: 1.25rem;
-    }
-
-    .files a.active::before {
-      height: 60%;
-    }
-
-    /* Main Content */
-    #main {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 2.5rem;
-      box-shadow: var(--shadow-md);
-      min-height: 400px;
-      border: 1px solid var(--border-light);
-      animation: fadeIn 0.3s ease-out;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    /* Markdown Content Styling */
-    #content h1 {
-      font-size: 2.25rem;
-      font-weight: 700;
-      margin: 0 0 1.5rem 0;
-      color: var(--text);
-      line-height: 1.2;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 0.75rem;
-    }
-
-    #content h2 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin: 2rem 0 1rem 0;
-      color: var(--text);
-      line-height: 1.3;
-    }
-
-    #content h3 {
-      font-size: 1.375rem;
-      font-weight: 600;
-      margin: 1.5rem 0 0.75rem 0;
-      color: var(--text);
-    }
-
-    #content h4 {
-      font-size: 1.125rem;
-      font-weight: 600;
-      margin: 1.25rem 0 0.5rem 0;
-      color: var(--text);
-    }
-
-    #content p {
-      margin: 0 0 1.25rem 0;
-      color: var(--text-secondary);
-      line-height: 1.7;
-    }
-
-    #content ul, #content ol {
-      margin: 0 0 1.25rem 0;
-      padding-left: 1.75rem;
-      color: var(--text-secondary);
-    }
-
-    #content li {
-      margin: 0.5rem 0;
-      line-height: 1.7;
-    }
-
-    #content code {
-      background: var(--border-light);
-      padding: 0.2rem 0.4rem;
-      border-radius: 4px;
-      font-size: 0.875em;
-      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-      color: var(--accent);
-    }
-
-    #content pre {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 1.25rem;
-      overflow-x: auto;
-      margin: 1.5rem 0;
-      box-shadow: var(--shadow);
-    }
-
-    #content pre code {
-      background: none;
-      padding: 0;
-      color: var(--text);
-      font-size: 0.875rem;
-      line-height: 1.6;
-    }
-
-    #content blockquote {
-      border-left: 4px solid var(--accent);
-      padding-left: 1.25rem;
-      margin: 1.5rem 0;
-      color: var(--muted);
-      font-style: italic;
-    }
-
-    #content a {
-      color: var(--accent);
-      text-decoration: none;
-      border-bottom: 1px solid transparent;
-      transition: var(--transition);
-    }
-
-    #content a:hover {
-      border-bottom-color: var(--accent);
-    }
-
-    #content table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1.5rem 0;
-      box-shadow: var(--shadow);
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-    }
-
-    #content th, #content td {
-      padding: 0.75rem 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    #content th {
-      background: var(--border-light);
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    #content tr:hover {
-      background: var(--border-light);
-    }
-
-    #content hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 2rem 0;
-    }
-
-    #content img {
-      max-width: 100%;
-      height: auto;
-      border-radius: var(--radius-sm);
-      margin: 1.5rem 0;
-      box-shadow: var(--shadow-md);
-    }
-
-    /* Breadcrumbs */
-    #breadcrumb-wrap {
-      display: flex;
-      align-items: center;
-      flex: 0 1 auto;
-    }
-
-    .breadcrumbs {
-      font-size: 0.875rem;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      background: var(--card);
-      padding: 0.625rem 1rem;
-      border-radius: var(--radius-sm);
-      border: 1px solid var(--border);
-      box-shadow: var(--shadow);
-      transition: var(--transition);
-    }
-
-    .breadcrumbs:hover {
-      box-shadow: var(--shadow-md);
-      border-color: var(--accent);
-    }
-
-    .breadcrumbs a {
-      color: var(--muted);
-      text-decoration: none;
-      transition: var(--transition);
-      font-weight: 500;
-      padding: 0.25rem 0.5rem;
-      border-radius: 4px;
-    }
-
-    .breadcrumbs a:hover {
-      color: var(--accent);
-      background: var(--border-light);
-    }
-
-    .breadcrumbs .separator {
-      color: var(--muted-light);
-      font-weight: 400;
-    }
-
-    /* Search Results */
-    .search-results {
-      position: absolute;
-      background: var(--card);
-      width: 100%;
-      max-height: 400px;
-      overflow-y: auto;
-      box-shadow: var(--shadow-lg);
-      border-radius: var(--radius-sm);
-      margin-top: 0.5rem;
-      border: 1px solid var(--border);
-      z-index: 50;
-      animation: fadeIn 0.2s ease-out;
-    }
-
-    .result {
-      padding: 0.875rem 1rem;
-      border-bottom: 1px solid var(--border-light);
-      transition: var(--transition);
-    }
-
-    .result:last-child {
-      border-bottom: none;
-    }
-
-    .result:hover {
-      background: var(--border-light);
-    }
-
-    .result a {
-      color: var(--text);
-      text-decoration: none;
-      display: block;
-    }
-
-    .result strong {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .result .excerpt {
-      color: var(--muted);
-      font-size: 0.8125rem;
-      margin-top: 0.25rem;
-    }
-
-    /* Loading State */
-    .loading {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 300px;
-      color: var(--muted);
-    }
-
-    .loading::after {
-      content: '';
-      width: 24px;
-      height: 24px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-left: 0.75rem;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Footer */
-    footer {
-      max-width: 1400px;
-      margin: 3rem auto 2rem;
-      padding: 0 1.5rem;
-      color: var(--muted);
-      font-size: 0.875rem;
-      text-align: center;
-      border-top: 1px solid var(--border-light);
-      padding-top: 2rem;
-    }
-
-    footer a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    /* Responsive */
-    @media (max-width: 1024px) {
-      #layout {
-        flex-direction: column;
-        gap: 1.5rem;
-      }
-
-      #sidebar {
-        width: 100%;
-        height: auto;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        z-index: 200;
-        max-height: 100vh;
-        border-radius: 0;
-        padding: 1rem;
-        transform: translateX(-100%);
-        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: var(--shadow-lg);
-      }
-
-      #sidebar.visible {
-        transform: translateX(0);
-        animation: none;
-      }
-
-      /* Show search in sidebar on mobile */
-      .sidebar-search {
-        display: block;
-      }
-
-      /* Hide header search on mobile */
-      .header-search {
-        display: none;
-      }
-
-      /* Overlay for mobile sidebar - will be added via JS */
-      .sidebar-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 199;
-        opacity: 0;
-        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        pointer-events: none;
-      }
-
-      .sidebar-overlay.visible {
-        opacity: 1;
-        pointer-events: all;
-      }
-
-      /* Close button for mobile - will be added via JS */
-      .sidebar-close-btn {
-        position: absolute;
-        top: 1rem;
-        right: 1rem;
-        font-size: 1.75rem;
-        color: var(--text);
-        cursor: pointer;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        background: var(--border-light);
-        transition: var(--transition);
-        border: none;
-        z-index: 10;
-        line-height: 1;
-      }
-
-      .sidebar-close-btn:hover {
-        background: var(--border);
-        transform: rotate(90deg);
-      }
-    }
-
-    @media (max-width: 768px) {
-      header {
-        padding: 0.875rem 1rem;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-      }
-
-      header h1 {
-        font-size: 1.125rem;
-      }
-
-      header button {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.8125rem;
-      }
-
-      #toggle-sidebar {
-        padding: 0.5rem;
-        font-size: 1.25rem;
-        flex-shrink: 0;
-      }
-
-      .logo-container {
-        gap: 0.5rem;
-        flex: 1;
-        min-width: 0;
-      }
-
-      .logo-svg {
-        width: 28px;
-        height: 28px;
-        flex-shrink: 0;
-      }
-
-      .logo-svg svg {
-        width: 28px;
-        height: 28px;
-      }
-
-      .controls {
-        flex-shrink: 0;
-        gap: 0.375rem;
-      }
-
-      .header-search {
-        display: none;
-      }
-
-      nav.top {
-        padding: 0.875rem 1rem;
-        flex-wrap: wrap;
-        gap: 0.75rem;
-      }
-
-      .top-menu {
-        flex: 1 1 100%;
-        order: 1;
-        gap: 0.375rem;
-        flex-wrap: wrap;
-        justify-content: flex-start;
-      }
-
-      .top-menu a {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-      }
-
-      #breadcrumb-wrap {
-        order: 2;
-        flex: 1 1 100%;
-      }
-
-      .breadcrumbs {
-        font-size: 0.8125rem;
-        padding: 0.5rem 0.75rem;
-        flex-wrap: wrap;
-        width: 100%;
-      }
-
-      nav.top .search-container {
-        display: none !important;
-      }
-
-      #layout {
-        margin: 1rem auto;
-        padding: 0 1rem;
-        gap: 1rem;
-      }
-
-      .card {
-        padding: 1.25rem;
-      }
-
-      #content h1 {
-        font-size: 1.75rem;
-        margin-bottom: 1rem;
-      }
-
-      #content h2 {
-        font-size: 1.375rem;
-        margin-top: 1.5rem;
-        margin-bottom: 0.75rem;
-      }
-
-      #content h3 {
-        font-size: 1.125rem;
-      }
-
-      #content p {
-        margin-bottom: 1rem;
-      }
-
-      #content ul, #content ol {
-        margin-bottom: 1rem;
-        padding-left: 1.5rem;
-      }
-
-      .folder-header {
-        padding: 0.625rem 0.875rem;
-      }
-
-      .folder-title {
-        font-size: 0.875rem;
-      }
-
-      .files {
-        padding-left: 1.5rem;
-      }
-
-      .files a {
-        padding: 0.5rem 0.875rem;
-        font-size: 0.8125rem;
-      }
-    }
-
-    @media (max-width: 480px) {
-      header {
-        padding: 0.75rem 0.875rem;
-        gap: 0.375rem;
-      }
-
-      header h1 {
-        font-size: 0.95rem;
-      }
-
-      .logo-container {
-        gap: 0.375rem;
-      }
-
-      .logo-svg {
-        width: 24px;
-        height: 24px;
-      }
-
-      .logo-svg svg {
-        width: 24px;
-        height: 24px;
-      }
-
-      .controls {
-        gap: 0.25rem;
-      }
-
-      header button {
-        padding: 0.4rem 0.6rem;
-        font-size: 0.75rem;
-      }
-
-      #toggle-sidebar {
-        padding: 0.4rem;
-        font-size: 1.125rem;
-      }
-
-      nav.top {
-        padding: 0.75rem 0.875rem;
-        gap: 0.5rem;
-      }
-
-      #layout {
-        padding: 0 0.875rem;
-        margin: 0.75rem auto;
-      }
-
-      .card {
-        padding: 1rem;
-      }
-
-      #content h1 {
-        font-size: 1.5rem;
-      }
-
-      #content h2 {
-        font-size: 1.25rem;
-      }
-
-      #sidebar {
-        padding: 0.875rem;
-      }
-
-      .folder-header {
-        padding: 0.5rem 0.75rem;
-      }
-
-      .files a {
-        padding: 0.5rem 0.75rem;
-      }
-
-      .breadcrumbs {
-        font-size: 0.75rem;
-        padding: 0.4rem 0.625rem;
-      }
-
-      .breadcrumbs a {
-        padding: 0.2rem 0.375rem;
-      }
-    }
-
-    /* Active link highlight */
-    .files a[href*="#"] {
-      position: relative;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Professional documentation and portfolio site">
+    <link rel="icon" type="image/svg+xml" href="./content/favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Site</title>
+    
+    <!-- ============================================================================
+         MAIN STYLESHEET - Organized into logical sections
+         ============================================================================ -->
+    <style>
+        /* Root variables for theming - overridden by JavaScript */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #1e40af;
+            --bg-light: #ffffff;
+            --bg-light-secondary: #f3f4f6;
+            --text-light: #1f2937;
+            --text-light-secondary: #6b7280;
+            --border-light: #e5e7eb;
+            
+            --bg-dark: #1a1a1a;
+            --bg-dark-secondary: #2d2d2d;
+            --text-dark: #e5e5e5;
+            --text-dark-secondary: #a0a0a0;
+            --border-dark: #404040;
+        }
+
+        /* ---- Global Styles ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            height: 100%;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* ---- Typography ---- */
+        h1, h2, h3, h4, h5, h6 {
+            line-height: 1.3;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-top: 1.5em;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin-top: 1.25em;
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 1em;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+
+        a:hover {
+            opacity: 0.8;
+        }
+
+        code {
+            background-color: var(--bg-light-secondary);
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        body.dark-mode code {
+            background-color: var(--bg-dark-secondary);
+        }
+
+        blockquote {
+            border-left: 4px solid var(--primary);
+            padding: 1em;
+            margin: 1em 0;
+            background-color: var(--bg-light-secondary);
+            font-style: italic;
+        }
+
+        body.dark-mode blockquote {
+            background-color: var(--bg-dark-secondary);
+        }
+
+        /* ---- Layout Container ---- */
+        #app {
+            display: flex;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        /* ---- Header/Navigation ---- */
+        header {
+            background-color: var(--bg-light-secondary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 100;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body.dark-mode header {
+            background-color: var(--bg-dark-secondary);
+            border-bottom-color: var(--border-dark);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+        }
+
+        .header-brand h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .header-tagline {
+            font-size: 0.85rem;
+            color: var(--text-light-secondary);
+            font-weight: 300;
+        }
+
+        body.dark-mode .header-tagline {
+            color: var(--text-dark-secondary);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .search-box {
+            position: relative;
+            width: 250px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border-light);
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            transition: border-color 0.2s;
+        }
+
+        body.dark-mode .search-box input {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+            border-color: var(--border-dark);
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .search-results {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-light);
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 200;
+            margin-top: 4px;
+        }
+
+        body.dark-mode .search-results {
+            background-color: var(--bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        body.dark-mode .search-result-item {
+            border-bottom-color: var(--border-dark);
+        }
+
+        .search-result-item:hover {
+            background-color: var(--bg-light-secondary);
+        }
+
+        body.dark-mode .search-result-item:hover {
+            background-color: var(--bg-dark-secondary);
+        }
+
+        .search-result-item .title {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+
+        .search-result-item .path {
+            font-size: 0.8rem;
+            color: var(--text-light-secondary);
+        }
+
+        body.dark-mode .search-result-item .path {
+            color: var(--text-dark-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .menu-btn, .theme-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: var(--text-light);
+            transition: opacity 0.2s;
+            padding: 0.5rem;
+        }
+
+        body.dark-mode .menu-btn,
+        body.dark-mode .theme-btn {
+            color: var(--text-dark);
+        }
+
+        .menu-btn:hover, .theme-btn:hover {
+            opacity: 0.7;
+        }
+
+        .menu-btn {
+            display: none;
+        }
+
+        /* ---- Main Layout ---- */
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* ---- Sidebar Navigation ---- */
+        nav.sidebar {
+            width: 280px;
+            background-color: var(--bg-light-secondary);
+            border-right: 1px solid var(--border-light);
+            overflow-y: auto;
+            padding: 1rem 0;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body.dark-mode nav.sidebar {
+            background-color: var(--bg-dark-secondary);
+            border-right-color: var(--border-dark);
+        }
+
+        nav.sidebar.mobile-hidden {
+            display: none;
+        }
+
+        .sidebar-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .sidebar-section-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-light-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        body.dark-mode .sidebar-section-title {
+            color: var(--text-dark-secondary);
+        }
+
+        .sidebar-list {
+            list-style: none;
+        }
+
+        .sidebar-item {
+            padding: 0.5rem 1rem;
+            margin: 0;
+        }
+
+        .sidebar-link {
+            display: block;
+            padding: 0.5rem 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .sidebar-link:hover {
+            background-color: var(--bg-light);
+        }
+
+        body.dark-mode .sidebar-link:hover {
+            background-color: var(--bg-dark);
+        }
+
+        .sidebar-link.active {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 500;
+        }
+
+        .sidebar-link.active:hover {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        /* ---- Content Area ---- */
+        .content-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .breadcrumb {
+            background-color: var(--bg-light-secondary);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0.75rem 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-light-secondary);
+        }
+
+        body.dark-mode .breadcrumb {
+            background-color: var(--bg-dark-secondary);
+            border-bottom-color: var(--border-dark);
+            color: var(--text-dark-secondary);
+        }
+
+        .breadcrumb a {
+            margin: 0 0.25rem;
+        }
+
+        #content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        #content > h1:first-child {
+            margin-top: 0;
+        }
+
+        /* ---- Footer ---- */
+        footer {
+            background-color: var(--bg-light-secondary);
+            border-top: 1px solid var(--border-light);
+            padding: 1.5rem;
+            margin-top: auto;
+            font-size: 0.9rem;
+            color: var(--text-light-secondary);
+            line-height: 1.6;
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+
+        body.dark-mode footer {
+            background-color: var(--bg-dark-secondary);
+            border-top-color: var(--border-dark);
+            color: var(--text-dark-secondary);
+        }
+
+        /* ---- Responsive Design ---- */
+        @media (max-width: 768px) {
+            .header-left {
+                flex: 1;
+            }
+
+            .search-box {
+                width: 150px;
+            }
+
+            .search-box input {
+                font-size: 0.85rem;
+            }
+
+            .menu-btn {
+                display: block;
+            }
+
+            nav.sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                width: 250px;
+                z-index: 300;
+                border-right: 2px solid var(--border-light);
+            }
+
+            body.dark-mode nav.sidebar {
+                border-right-color: var(--border-dark);
+            }
+
+            nav.sidebar.mobile-hidden {
+                display: none;
+            }
+
+            main {
+                width: 100%;
+            }
+
+            #content {
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            header {
+                flex-wrap: wrap;
+                gap: 1rem;
+                padding: 0.75rem 1rem;
+            }
+
+            .header-left {
+                order: 1;
+            }
+
+            .controls {
+                order: 2;
+                margin-left: auto;
+            }
+
+            .search-box {
+                order: 3;
+                width: 100%;
+                flex-basis: 100%;
+            }
+
+            .header-brand h1 {
+                font-size: 1.2rem;
+            }
+
+            nav.sidebar {
+                width: 100%;
+            }
+
+            #content {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
+    <!-- ============================================================================
+         HTML STRUCTURE - Main app container with header, sidebar, content, footer
+         ============================================================================ -->
+    <div id="app">
+        <!-- Header with branding, search, and theme toggle -->
+        <header>
+            <div class="header-left">
+                <div class="logo">
+                    <img src="./content/logo.svg" alt="Logo" loading="lazy">
+                </div>
+                <div class="header-brand">
+                    <h1 id="site-name">Site</h1>
+                    <div class="header-tagline" id="site-tagline">Documentation & Resources</div>
+                </div>
+            </div>
 
-<header>
-  <button id="toggle-sidebar" title="Toggle sidebar" aria-label="Toggle sidebar">
-    <span>☰</span>
-  </button>
-  <div class="logo-container">
-    <div id="logo-container" class="logo-svg"></div>
-    <h1 id="header-title">
-      <span class="site-name" id="site-name">DocsHub</span>
-      <span>,</span>
-      <span id="header-subtitle">Documentation</span>
-    </h1>
-  </div>
-  <div class="controls">
-    <div class="header-search" id="header-search">
-      <span class="search-icon">🔍</span>
-      <input id="search-header" type="search" placeholder="Search..." aria-label="Search documentation" />
-      <div id="search-results-header" class="search-results" style="display:none"></div>
+            <div class="header-right">
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="Search docs...">
+                    <div class="search-results" id="search-results"></div>
+                </div>
+
+                <div class="controls">
+                    <button class="menu-btn" id="menu-toggle" aria-label="Toggle menu">☰</button>
+                    <button class="theme-btn" id="theme-toggle" aria-label="Toggle theme">🌙</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main content layout -->
+        <main>
+            <!-- Sidebar navigation -->
+            <nav class="sidebar" id="sidebar">
+                <ul class="sidebar-list" id="menu"></ul>
+            </nav>
+
+            <!-- Content area -->
+            <div class="content-wrapper">
+                <div class="breadcrumb" id="breadcrumb"></div>
+                <div id="content"></div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer id="footer"></footer>
     </div>
-    <button id="toggle-theme" title="Toggle dark mode" aria-label="Toggle theme">
-      <span id="theme-icon">🌙</span>
-      <span id="theme-text">Dark</span>
-    </button>
-  </div>
-</header>
 
-<nav class="top" id="top-nav">
-  <div id="breadcrumb-wrap"></div>
-  <div class="top-menu" id="top-menu"></div>
-</nav>
-
-<div id="layout">
-  <aside id="sidebar"></aside>
-
-  <main id="main">
-    <div id="content" class="card">
-      <div class="loading">Loading content</div>
-    </div>
-  </main>
-</div>
-
-<footer>
-  <div id="layout-footer">© 2025 — Built with ❤️</div>
-</footer>
-
-<script>
-/*
- * STATIC MARKDOWN LINKING:
- * All markdown files are dynamically discovered from the content/ directory.
- * The system now supports up to 8 levels of nested folders.
- * Files are cached after first load for better performance.
- * 
- * Content Directory Structure:
- * - Only .md files (markdown) and directories
- * - logo.svg is allowed for the site logo
- * - _config.md contains site name and tagline
- * - _header.md and _footer.md for layout content
- * 
- * Navigation:
- * - Supports up to 8 levels of nested folders
- * - First-level folders appear in horizontal menu
- * - Position and visibility can be set via frontmatter in index.md files
- * 
- * To add new content:
- * 1. Add markdown files to content/{path}/ directory
- * 2. Structure will be automatically discovered
- * 3. Use frontmatter to control menu position and visibility
- */
-
-// Content structure - will be populated dynamically via discovery
-let CONTENT_STRUCTURE = {};
-
-// Folder icons
-const FOLDER_ICONS = {
-  home: '🏠',
-  about: 'ℹ️',
-  blog: '📝',
-  docs: '📚'
-};
-
-// Dynamic content discovery - scans content directory for markdown files
-async function discoverContentStructure() {
-  try {
-    // Fallback structure for static discovery if dynamic fails
-    const fallbackStructure = {
-      home: ['index'],
-      about: ['index', 'team'],
-      blog: ['index', 'first-post', 'second-post'],
-      docs: ['index', 'installation', 'usage']
-    };
+    <!-- ============================================================================
+         JAVASCRIPT - Single-page application logic
+         ============================================================================ -->
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/+esm" type="module"></script>
     
-    // Try dynamic discovery first by attempting to load manifest.md
-    try {
-      const manifestRes = await fetch('content/manifest.md');
-      if (manifestRes.ok) {
-        const manifestText = await manifestRes.text();
-        const structure = parseManifestMarkdown(manifestText);
-        if (structure && Object.keys(structure).length > 0) {
-          CONTENT_STRUCTURE = structure;
-          console.log('✓ Dynamic content discovery: manifest loaded');
-          return;
+    <script type="module">
+        import { marked } from "https://cdn.jsdelivr.net/npm/marked@12.0.0/+esm";
+
+        // ---- Global State ----
+        // These store the parsed configuration and content structure
+        let SITE_CONFIG = {};
+        let THEME_CONFIG = {};
+        let CONTENT_STRUCTURE = {};
+        let CONTENT_CACHE = {};
+        let SEARCH_CACHE = [];
+
+        // ---- Configuration Loading ----
+        /**
+         * Loads and parses the `manifest.yaml` file which contains all configuration
+         * Returns the parsed YAML object.
+         */
+        async function loadManifest() {
+            try {
+                const response = await fetch('./content/manifest.yaml');
+                if (!response.ok) throw new Error('Manifest not found');
+                const text = await response.text();
+                // Use js-yaml (loaded as window.jsyaml)
+                const data = window.jsyaml.load(text);
+                return data || {};
+            } catch (error) {
+                console.error('Error loading manifest:', error);
+                return {};
+            }
         }
-      }
-    } catch (e) {
-      // Manifest not available, continue with fallback
-    }
-    
-    // Use fallback structure - tested and verified paths
-    CONTENT_STRUCTURE = fallbackStructure;
-    console.log('✓ Content structure initialized (fallback)', Object.keys(CONTENT_STRUCTURE));
-  } catch (error) {
-    console.error('Error discovering content structure:', error);
-    CONTENT_STRUCTURE = {
-      home: ['index'],
-      docs: ['index']
-    };
-  }
-}
 
-// Parse manifest.md to extract structure
-function parseManifestMarkdown(text) {
-  try {
-    const structure = {};
-    const lines = text.split('\n');
-    let currentSection = null;
-    let inPages = false;
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      if (trimmed.endsWith(':') && !trimmed.includes('pages:') && currentSection === null) {
-        const sectionName = trimmed.slice(0, -1).toLowerCase();
-        if (sectionName !== 'sections' && sectionName !== 'section' && !sectionName.includes('_')) {
-          currentSection = sectionName;
-          structure[currentSection] = [];
-          inPages = false;
+        /**
+         * Initializes site configuration from manifest frontmatter
+         */
+        async function initializeConfig() {
+            const manifest = await loadManifest();
+            SITE_CONFIG = manifest.config || {};
+            THEME_CONFIG = manifest.theme || {};
+
+            // Apply theme colors to CSS variables
+            applyThemeColors(THEME_CONFIG);
+
+            // Set window title
+            if (SITE_CONFIG.window_title) {
+                document.title = SITE_CONFIG.window_title;
+            }
+
+            // Update header branding
+            if (SITE_CONFIG.site_name) {
+                document.getElementById('site-name').textContent = SITE_CONFIG.site_name;
+            }
+            if (SITE_CONFIG.tagline) {
+                document.getElementById('site-tagline').textContent = SITE_CONFIG.tagline;
+            }
+
+            return manifest;
         }
-      }
-      
-      if (trimmed.startsWith('pages:') || (trimmed.startsWith('- ') && currentSection)) {
-        inPages = true;
-      }
-      
-      if (inPages && trimmed.startsWith('- ') && currentSection) {
-        const pageName = trimmed.slice(2).trim();
-        if (pageName && !pageName.includes(':')) {
-          structure[currentSection].push(pageName);
+
+        /**
+         * Applies theme colors from manifest to CSS variables
+         * Detects current theme and applies appropriate color scheme
+         */
+        function applyThemeColors(themeConfig) {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            const themeKey = isDarkMode ? 'dark_mode' : 'light_mode';
+            const colors = themeConfig[themeKey] || {};
+
+            if (colors.primary) document.documentElement.style.setProperty('--primary', colors.primary);
+            if (colors.primary_dark) document.documentElement.style.setProperty('--primary-dark', colors.primary_dark);
+            if (colors.bg) document.documentElement.style.setProperty(`--bg-${isDarkMode ? 'dark' : 'light'}`, colors.bg);
+            if (colors.text) document.documentElement.style.setProperty(`--text-${isDarkMode ? 'dark' : 'light'}`, colors.text);
         }
-      }
-    }
-    
-    return structure;
-  } catch (e) {
-    console.warn('Could not parse manifest.md:', e);
-    return {};
-  }
-}
 
-// Cache for loaded markdown content
-const CONTENT_CACHE = {};
+        // ---- Content Discovery ----
+        /**
+         * Discovers all content by reading manifest.md structure
+         * Builds CONTENT_STRUCTURE object mapping file paths
+         */
+        async function discoverContent() {
+            const manifest = await loadManifest();
+            const sections = manifest.sections || {};
 
-// Layout content
-let LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — Built with ❤️` };
+            CONTENT_STRUCTURE = {};
 
-// Site configuration
-let SITE_CONFIG = { site_name: 'DocsHub', tagline: 'Documentation' };
+            for (const [folderName, folderData] of Object.entries(sections)) {
+                if (typeof folderData === 'object' && folderData.pages) {
+                    CONTENT_STRUCTURE[folderName] = {
+                        title: folderData.display_name || folderData.title || titleCase(folderName),
+                        position: folderData.menu_position || folderData.menu_position || folderData.position || 999,
+                        pages: folderData.pages
+                    };
+                }
+            }
 
-// Menu configuration for first-level pages
-let MENU_CONFIG = {};
-
-// Load menu configuration from frontmatter
-async function loadMenuConfig() {
-  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
-    try {
-      const response = await fetch(`content/${folder}/index.md`);
-      if (response.ok) {
-        const text = await response.text();
-        const { data } = parseFrontmatter(text);
-        
-        MENU_CONFIG[folder] = {
-          position: parseInt(data.menu_position) || 999,
-          title: data.menu_title || titleCase(folder),
-          hidden: data.menu_hidden === 'true' || data.menu_hidden === true
-        };
-      }
-    } catch (e) {
-      // If we can't load, use defaults
-      MENU_CONFIG[folder] = { position: 999, title: titleCase(folder), hidden: false };
-    }
-  }
-}
-
-// Helpers
-function titleCase(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-function formatFileName(file) {
-  return file === 'index' ? 'Overview' : file.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-}
-
-// Theme management
-const root = document.documentElement;
-let THEME_CONFIG = null;
-
-// Load theme colors from config file
-async function loadThemeConfig() {
-  try {
-    const response = await fetch('content/theme.md');
-    if (response.ok) {
-      const themeText = await response.text();
-      THEME_CONFIG = parseThemeMarkdown(themeText);
-      applyThemeColors();
-    }
-  } catch (error) {
-    console.warn('Could not load theme config, using defaults:', error);
-  }
-}
-
-// Parse theme.md to extract color configuration
-function parseThemeMarkdown(text) {
-  try {
-    const config = { light: {}, dark: {} };
-    const lines = text.split('\n');
-    let currentMode = null;
-    
-    for (const line of lines) {
-      const trimmed = line.trim();
-      
-      if (trimmed.includes('light_mode:')) currentMode = 'light';
-      if (trimmed.includes('dark_mode:')) currentMode = 'dark';
-      
-      if (trimmed.includes(':') && currentMode && !trimmed.endsWith(':')) {
-        const match = trimmed.match(/(.+?):\s*[\"']?(.+?)[\"']?\s*(?:#|$)/);
-        if (match && match[1] && match[2]) {
-          const key = match[1].trim();
-          let value = match[2].trim();
-          
-          if (value.includes('#')) {
-            value = value.split('#')[0].trim();
-          }
-          
-          let cssKey = '--' + key.replace(/_/g, '-');
-          if (key === 'background') cssKey = '--bg';
-          if (key === 'card_background') cssKey = '--card';
-          if (key === 'text_color') cssKey = '--text';
-          if (key === 'secondary_text') cssKey = '--text-secondary';
-          if (key === 'accent_color') cssKey = '--accent';
-          if (key === 'accent_hover') cssKey = '--accent-hover';
-          if (key === 'navigation_bg') cssKey = '--nav';
-          if (key === 'border_color') cssKey = '--border';
-          if (key === 'border_light') cssKey = '--border-light';
-          if (key === 'shadow') cssKey = '--shadow';
-          if (key === 'shadow_medium') cssKey = '--shadow-md';
-          if (key === 'shadow_large') cssKey = '--shadow-lg';
-          if (key === 'corner_radius') cssKey = '--radius';
-          if (key === 'small_radius') cssKey = '--radius-sm';
-          if (key === 'transition_speed') cssKey = '--transition';
-          
-          config[currentMode][cssKey] = value;
+            return CONTENT_STRUCTURE;
         }
-      }
-    }
-    
-    return config;
-  } catch (e) {
-    console.warn('Could not parse theme.md:', e);
-    return null;
-  }
-}
 
-// Apply theme colors to CSS variables
-function applyThemeColors() {
-  if (!THEME_CONFIG) return;
-  
-  const currentTheme = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  const colors = THEME_CONFIG[currentTheme];
-  
-  if (colors) {
-    Object.keys(colors).forEach(key => {
-      root.style.setProperty(`--${key}`, colors[key]);
-    });
-  }
-}
-
-function setTheme(t) {
-  if (t === 'dark') {
-    root.setAttribute('data-theme', 'dark');
-    document.getElementById('theme-icon').textContent = '☀️';
-    document.getElementById('theme-text').textContent = 'Light';
-  } else {
-    root.removeAttribute('data-theme');
-    document.getElementById('theme-icon').textContent = '🌙';
-    document.getElementById('theme-text').textContent = 'Dark';
-  }
-  localStorage.setItem('spa-theme', t);
-  applyThemeColors();
-}
-
-(function() {
-  const saved = localStorage.getItem('spa-theme') || 'light';
-  setTheme(saved);
-})();
-
-// Load markdown file from content directory (static linking)
-// All markdown files are statically linked from content/{folder}/{file}.md
-async function loadMarkdown(folder, file) {
-  const cacheKey = `${folder}/${file}`;
-  if (CONTENT_CACHE[cacheKey]) {
-    return CONTENT_CACHE[cacheKey];
-  }
-  
-  try {
-    // Static path to markdown file in content directory
-    const path = `content/${folder}/${file}.md`;
-    const response = await fetch(path);
-    if (!response.ok) {
-      throw new Error(`Failed to load: ${path}`);
-    }
-    const text = await response.text();
-    CONTENT_CACHE[cacheKey] = text;
-    return text;
-  } catch (error) {
-    console.error('Error loading markdown:', error);
-    return `# Error\n\nFailed to load content: ${folder}/${file}\n\nPlease ensure the file exists at \`content/${folder}/${file}.md\`.`;
-  }
-}
-
-// Parse frontmatter from markdown
-function parseFrontmatter(text) {
-  const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n/;
-  const match = text.match(frontmatterRegex);
-  if (!match) return { data: {}, content: text };
-  
-  const frontmatterText = match[1];
-  const content = text.replace(frontmatterRegex, '');
-  const data = {};
-  
-  frontmatterText.split('\n').forEach(line => {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex > 0) {
-      const key = line.substring(0, colonIndex).trim();
-      let value = line.substring(colonIndex + 1).trim();
-      // Remove quotes if present
-      if ((value.startsWith('"') && value.endsWith('"')) || 
-          (value.startsWith("'") && value.endsWith("'"))) {
-        value = value.slice(1, -1);
-      }
-      data[key] = value;
-    }
-  });
-  
-  return { data, content };
-}
-
-// Load logo SVG from content directory
-async function loadLogo() {
-  try {
-    const response = await fetch('content/logo.svg');
-    if (response.ok) {
-      const svgText = await response.text();
-      const logoContainer = document.getElementById('logo-container');
-      if (logoContainer) {
-        logoContainer.innerHTML = svgText;
-        // Make sure SVG scales properly
-        const svg = logoContainer.querySelector('svg');
-        if (svg) {
-          svg.setAttribute('class', 'logo-svg');
-          svg.setAttribute('width', '32');
-          svg.setAttribute('height', '32');
+        /**
+         * Converts string to Title Case (e.g., 'home' -> 'Home')
+         */
+        function titleCase(str) {
+            return str.replace(/\b\w/g, char => char.toUpperCase());
         }
-      }
-    }
-  } catch (error) {
-    console.error('Error loading logo:', error);
-  }
-}
 
-// Load site configuration
-async function loadConfig() {
-  try {
-    const response = await fetch('content/_config.md');
-    if (response.ok) {
-      const configText = await response.text();
-      const { data } = parseFrontmatter(configText);
-      
-      if (data.site_name) {
-        SITE_CONFIG.site_name = data.site_name;
-        const siteNameEl = document.getElementById('site-name');
-        if (siteNameEl) {
-          siteNameEl.textContent = data.site_name;
+        /**
+         * Formats filename for display (e.g., 'first-post.md' -> 'First Post')
+         */
+        function formatFileName(name) {
+            return name
+                .replace(/\.md$/, '')
+                .replace(/\.yaml$/, '')
+                .split('-')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
         }
-      }
-      
-      if (data.tagline) {
-        SITE_CONFIG.tagline = data.tagline;
-        const subtitleEl = document.getElementById('header-subtitle');
-        if (subtitleEl) {
-          subtitleEl.textContent = data.tagline;
+
+        // ---- Content Loading ----
+        /**
+         * Loads markdown file content with caching
+         * Also builds search index while loading
+         */
+        async function loadMarkdown(folder, file) {
+            // Now we expect YAML files with a `body` field containing markdown
+            const path = `./content/${folder}/${file}.yaml`;
+            const cacheKey = `${folder}/${file}`;
+
+            // Return cached content if available
+            if (CONTENT_CACHE[cacheKey]) {
+                return CONTENT_CACHE[cacheKey];
+            }
+
+            try {
+                const response = await fetch(path);
+                if (!response.ok) throw new Error('File not found');
+
+                const text = await response.text();
+                const parsed = window.jsyaml.load(text) || {};
+
+                const body = parsed.body || '';
+
+                CONTENT_CACHE[cacheKey] = {
+                    frontmatter: parsed,
+                    content: body,
+                    html: await marked.parse(body)
+                };
+
+                // Add to search index
+                SEARCH_CACHE.push({
+                    title: parsed.title || formatFileName(file),
+                    content: body,
+                    path: `#/${folder}/${file}`,
+                    folder: folder,
+                    file: file
+                });
+
+                return CONTENT_CACHE[cacheKey];
+            } catch (error) {
+                console.error(`Error loading ${path}:`, error);
+                return null;
+            }
         }
-      }
-      
-      // Set window title from config
-      if (data.window_title) {
-        document.title = data.window_title;
-        const titleEl = document.getElementById('page-title');
-        if (titleEl) {
-          titleEl.textContent = data.window_title;
+
+        /**
+         * Loads layout content (header and footer) from manifest
+         */
+        async function loadLayout(manifest) {
+            const layout = manifest.layout || {};
+
+            let headerHTML = '';
+            let footerHTML = '';
+
+            if (layout.header) {
+                headerHTML = await marked.parse(layout.header);
+            }
+            if (layout.footer) {
+                footerHTML = await marked.parse(layout.footer);
+            }
+
+            return { headerHTML, footerHTML };
         }
-      } else if (data.site_name) {
-        // Fallback to site name if window_title not set
-        document.title = data.site_name;
-        const titleEl = document.getElementById('page-title');
-        if (titleEl) {
-          titleEl.textContent = data.site_name;
+
+        // ---- Navigation Building ----
+        /**
+         * Builds the sidebar navigation menu from CONTENT_STRUCTURE
+         */
+        async function buildSidebar() {
+            const menu = document.getElementById('menu');
+            menu.innerHTML = '';
+
+            const sortedSections = Object.entries(CONTENT_STRUCTURE)
+                .sort((a, b) => (a[1].position || 999) - (b[1].position || 999));
+
+            for (const [folderName, folderData] of sortedSections) {
+                if (!folderData.pages || folderData.pages.length === 0) continue;
+
+                // Section title
+                const section = document.createElement('li');
+                section.className = 'sidebar-section';
+
+                const sectionTitle = document.createElement('div');
+                sectionTitle.className = 'sidebar-section-title';
+                sectionTitle.textContent = folderData.title;
+                section.appendChild(sectionTitle);
+
+                // Section list
+                const list = document.createElement('ul');
+                list.className = 'sidebar-list';
+
+                for (const page of folderData.pages) {
+                    const itemName = page.name || page;
+                    const itemTitle = page.title || formatFileName(itemName);
+                    
+                    const item = document.createElement('li');
+                    item.className = 'sidebar-item';
+
+                    const link = document.createElement('a');
+                    link.className = 'sidebar-link';
+                    link.href = `#/${folderName}/${itemName}`;
+                    link.textContent = itemTitle;
+
+                    item.appendChild(link);
+                    list.appendChild(item);
+                }
+
+                section.appendChild(list);
+                menu.appendChild(section);
+            }
         }
-      }
-    }
-  } catch (error) {
-    console.error('Error loading config:', error);
-  }
-}
 
-// Load layout files
-async function loadLayout() {
-  try {
-    // Load config and logo first
-    await Promise.all([loadConfig(), loadLogo()]);
-    
-    const [headerRes, footerRes] = await Promise.all([
-      fetch('content/_header.md').catch(() => null),
-      fetch('content/_footer.md').catch(() => null)
-    ]);
-    
-    if (headerRes && headerRes.ok) {
-      const headerText = await headerRes.text();
-      const { content } = parseFrontmatter(headerText);
-      LAYOUT.header = content;
-    }
-    
-    if (footerRes && footerRes.ok) {
-      const footerText = await footerRes.text();
-      const { content } = parseFrontmatter(footerText);
-      LAYOUT.footer = content;
-      // Properly parse markdown for footer
-      const footerEl = document.getElementById('layout-footer');
-      if (footerEl && typeof marked !== 'undefined') {
-        footerEl.innerHTML = marked.parse(LAYOUT.footer);
-      } else if (footerEl) {
-        footerEl.innerHTML = LAYOUT.footer;
-      }
-    }
-  } catch (error) {
-    console.error('Error loading layout:', error);
-  }
-}
+        /**
+         * Updates active link styling based on current route
+         */
+        function updateActiveLink(folder, file) {
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.classList.remove('active');
+            });
 
-// Build top horizontal menu for first-level pages
-function buildTopMenu() {
-  const topMenu = document.getElementById('top-menu');
-  if (!topMenu) return;
-  
-  topMenu.innerHTML = '';
-  
-  const folders = Object.keys(CONTENT_STRUCTURE);
-  
-  // Only show menu if there's navigation content
-  if (folders.length === 0) {
-    topMenu.style.display = 'none';
-    return;
-  }
-  
-  topMenu.style.display = 'flex';
-  
-  // Sort folders by menu position from frontmatter
-  const sortedFolders = folders
-    .map(folder => ({
-      name: folder,
-      position: MENU_CONFIG[folder]?.position || 999,
-      title: MENU_CONFIG[folder]?.title || titleCase(folder),
-      hidden: MENU_CONFIG[folder]?.hidden || false
-    }))
-    .filter(f => !f.hidden)
-    .sort((a, b) => a.position - b.position);
-  
-  for (const folderData of sortedFolders) {
-    const link = document.createElement('a');
-    // Link to index page of each folder
-    link.href = `#/${folderData.name}/index`;
-    link.textContent = folderData.title;
-    link.setAttribute('data-folder', folderData.name);
-    topMenu.appendChild(link);
-  }
-  
-  updateTopMenuActive();
-}
-
-// Update active link in top menu
-function updateTopMenuActive() {
-  const hash = location.hash || '#/home';
-  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
-  const folder = parts[0] || 'home';
-  
-  // Remove all active classes from top menu
-  document.querySelectorAll('.top-menu a').forEach(a => a.classList.remove('active'));
-  
-  // Add active class to current folder
-  const activeLink = document.querySelector(`.top-menu a[data-folder="${folder}"]`);
-  if (activeLink) {
-    activeLink.classList.add('active');
-  }
-}
-
-    // Build sidebar with collapsible folders
-function buildSidebar() {
-  const sb = document.getElementById('sidebar');
-  sb.innerHTML = '';
-  
-  // Add close button for mobile
-  if (window.innerWidth <= 1024) {
-    const closeBtn = document.createElement('button');
-    closeBtn.className = 'sidebar-close-btn';
-    closeBtn.innerHTML = '×';
-    closeBtn.setAttribute('aria-label', 'Close sidebar');
-    closeBtn.addEventListener('click', () => {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.classList.remove('visible');
-      document.body.style.overflow = '';
-      sidebarVisible = false;
-    });
-    sb.appendChild(closeBtn);
-    
-    // Add search in sidebar for mobile
-    const sidebarSearchDiv = document.createElement('div');
-    sidebarSearchDiv.className = 'sidebar-search';
-    sidebarSearchDiv.innerHTML = `
-      <div class="sidebar-search-container">
-        <span class="search-icon">🔍</span>
-        <input id="search-sidebar" type="search" placeholder="Search..." aria-label="Search documentation" />
-        <div id="search-results-sidebar" class="search-results" style="display:none"></div>
-      </div>
-    `;
-    sb.appendChild(sidebarSearchDiv);
-    
-    // Wire up sidebar search
-    setTimeout(() => wireUpSearch('search-sidebar', 'search-results-sidebar'), 100);
-  }
-  
-  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
-    const f = document.createElement('div');
-    f.className = 'folder';
-    // Don't expand any folder by default
-    
-    const head = document.createElement('div');
-    head.className = 'folder-header';
-    
-    const title = document.createElement('div');
-    title.className = 'folder-title';
-    const icon = document.createElement('span');
-    icon.className = 'folder-icon';
-    icon.textContent = FOLDER_ICONS[folder] || '📁';
-    title.appendChild(icon);
-    
-    // Check if index exists - if so, make folder name clickable to index
-    const hasIndex = CONTENT_STRUCTURE[folder].includes('index');
-    if (hasIndex) {
-      const folderLink = document.createElement('a');
-      folderLink.href = `#/${folder}/index`;
-      folderLink.textContent = titleCase(folder);
-      folderLink.style.textDecoration = 'none';
-      folderLink.style.color = 'inherit';
-      folderLink.setAttribute('data-folder', folder);
-      folderLink.setAttribute('data-file', 'index');
-      title.appendChild(folderLink);
-    } else {
-      title.appendChild(document.createTextNode(titleCase(folder)));
-    }
-    
-    const foldBtn = document.createElement('div');
-    foldBtn.className = 'folder-toggle';
-    foldBtn.textContent = '▸'; // All folders collapsed by default
-    
-    head.appendChild(title);
-    head.appendChild(foldBtn);
-
-    const filesDiv = document.createElement('div');
-    filesDiv.className = 'files';
-    
-    // Only show non-index files in the files list (index is now the folder name)
-    const nonIndexFiles = CONTENT_STRUCTURE[folder].filter(file => file !== 'index');
-    
-    if (nonIndexFiles.length > 0) {
-      for (const file of nonIndexFiles) {
-        const link = document.createElement('a');
-        link.href = `#/${folder}/${file}`;
-        link.textContent = formatFileName(file);
-        link.setAttribute('data-folder', folder);
-        link.setAttribute('data-file', file);
-        filesDiv.appendChild(link);
-      }
-    } else {
-      // If only index exists, hide the files div
-      filesDiv.style.display = 'none';
-    }
-
-    head.addEventListener('click', (e) => {
-      // Don't toggle if clicking on the folder link
-      if (e.target.tagName === 'A') {
-        return;
-      }
-      // Only toggle if there are files to show
-      if (nonIndexFiles.length > 0) {
-        f.classList.toggle('expanded');
-        foldBtn.textContent = f.classList.contains('expanded') ? '▾' : '▸';
-      }
-    });
-
-    f.appendChild(head);
-    f.appendChild(filesDiv);
-    sb.appendChild(f);
-  }
-  
-  updateActiveLink();
-  updateSearchVisibility();
-}
-
-// Update search visibility based on navigation content
-function updateSearchVisibility() {
-  const searchHeader = document.getElementById('header-search');
-  if (!searchHeader) return;
-  
-  const folders = Object.keys(CONTENT_STRUCTURE);
-  
-  // Show search only if sidebar is visible AND there's navigation content
-  if (folders.length === 0 || (folders.length === 1 && CONTENT_STRUCTURE[folders[0]].length === 0)) {
-    searchHeader.style.display = 'none';
-  } else {
-    // Check if sidebar is visible/will be shown
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && sidebar.classList.contains('visible')) {
-      searchHeader.style.display = 'block';
-    } else if (window.innerWidth > 1024) {
-      // On desktop, show if there's content
-      searchHeader.style.display = 'block';
-    } else {
-      searchHeader.style.display = 'none';
-    }
-  }
-}
-
-// Update active link in sidebar
-function updateActiveLink() {
-  const hash = location.hash || '#/home';
-  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
-  const folder = parts[0] || 'home';
-  const file = parts[1] || 'index';
-  
-  // Remove all active classes
-  document.querySelectorAll('.files a, .folder-title a').forEach(a => a.classList.remove('active'));
-  
-  // Check if it's an index page - highlight the folder title link
-  if (file === 'index') {
-    const folderLink = document.querySelector(`.folder-title a[data-folder="${folder}"]`);
-    if (folderLink) {
-      folderLink.classList.add('active');
-      // Expand parent folder if it has other files
-      const folderEl = folderLink.closest('.folder');
-      if (folderEl) {
-        const filesDiv = folderEl.querySelector('.files');
-        if (filesDiv && filesDiv.children.length > 0) {
-          folderEl.classList.add('expanded');
-          folderEl.querySelector('.folder-toggle').textContent = '▾';
+            const currentLink = document.querySelector(`a[href="#/${folder}/${file}"]`);
+            if (currentLink) {
+                currentLink.classList.add('active');
+            }
         }
-      }
-    }
-  } else {
-    // Highlight the file link
-    const activeLink = document.querySelector(`.files a[data-folder="${folder}"][data-file="${file}"]`);
-    if (activeLink) {
-      activeLink.classList.add('active');
-      // Expand parent folder
-      const folderEl = activeLink.closest('.folder');
-      if (folderEl) {
-        folderEl.classList.add('expanded');
-        folderEl.querySelector('.folder-toggle').textContent = '▾';
-      }
-    }
-  }
-  
-  updateTopMenuActive();
-}
 
-// Breadcrumbs
-function buildBreadcrumb(hash) {
-  const wrap = document.getElementById('breadcrumb-wrap');
-  wrap.innerHTML = '';
-  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
-  
-  // Don't show breadcrumb on overview/index pages
-  const file = parts[1] || 'index';
-  if (file === 'index' && parts.length <= 1) {
-    wrap.textContent = '';
-    return;
-  }
-  
-  // Don't show breadcrumb if only folder/index (overview page)
-  if (parts.length === 1 || (parts.length === 2 && parts[1] === 'index')) {
-    wrap.textContent = '';
-    return;
-  }
-  
-  const nav = document.createElement('div');
-  nav.className = 'breadcrumbs';
-  
-  // Start from first level (folder), don't show Home
-  let accum = '#';
-  for (let i = 0; i < parts.length; i++) {
-    const p = parts[i];
-    // Skip 'index' in breadcrumb path
-    if (p === 'index' && i === parts.length - 1) {
-      continue;
-    }
-    accum += '/' + p;
-    
-    // Add separator before each item except the first
-    if (i > 0) {
-      const sep = document.createElement('span');
-      sep.className = 'separator';
-      sep.textContent = ' / ';
-      nav.appendChild(sep);
-    }
-    
-    const a = document.createElement('a');
-    a.href = accum;
-    a.textContent = p === 'index' ? 'Overview' : formatFileName(p);
-    nav.appendChild(a);
-  }
-  
-  wrap.appendChild(nav);
-}
+        /**
+         * Builds breadcrumb navigation
+         */
+        function buildBreadcrumb(folder, file) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = '';
 
-// Router: load content based on hash
-async function router() {
-  const raw = location.hash || '#/home';
-  const parts = raw.replace(/^#\//, '').split('/').filter(Boolean);
-  const folder = parts[0] || 'home';
-  const file = parts[1] || 'index';
-  
-  // Show loading state
-  document.getElementById('content').innerHTML = '<div class="loading">Loading content</div>';
-  
-  // Check if folder exists in structure
-  if (!CONTENT_STRUCTURE[folder] || !CONTENT_STRUCTURE[folder].includes(file)) {
-    document.getElementById('content').innerHTML = `
-      <h1>404 - Page Not Found</h1>
-      <p>The page you're looking for doesn't exist: <code>${folder}/${file}</code></p>
-      <p><a href="#/home">← Return to Home</a></p>
-    `;
-    buildBreadcrumb(location.hash || '#/home');
-    updateActiveLink();
-    updateTopMenuActive();
-    return;
-  }
-  
-  try {
-    const md = await loadMarkdown(folder, file);
-    // Configure marked options for better markdown rendering
-    if (typeof marked !== 'undefined') {
-      marked.setOptions({
-        breaks: false,
-        gfm: true,
-        headerIds: true,
-        mangle: false
-      });
-      document.getElementById('content').innerHTML = marked.parse(md);
-    } else {
-      // Fallback if marked is not loaded
-      document.getElementById('content').innerHTML = `<pre>${md}</pre>`;
-    }
-    buildBreadcrumb(location.hash || '#/home');
-    updateActiveLink();
-    updateTopMenuActive();
-    
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } catch (error) {
-    console.error('Router error:', error);
-    document.getElementById('content').innerHTML = `
-      <h1>Error</h1>
-      <p>Failed to load content. Please try again later.</p>
-      <p><a href="#/home">← Return to Home</a></p>
-    `;
-  }
-}
+            const homeBreadcrumb = document.createElement('a');
+            homeBreadcrumb.href = '#/home/index';
+            homeBreadcrumb.textContent = '📄 Home';
 
-// Search: full-text search through content
-async function searchDocs(q) {
-  if (!q) return [];
-  q = q.toLowerCase();
-  const results = [];
-  
-  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
-    for (const file of CONTENT_STRUCTURE[folder]) {
-      const cacheKey = `${folder}/${file}`;
-      let content = CONTENT_CACHE[cacheKey];
-      
-      if (!content) {
-        try {
-          const response = await fetch(`content/${folder}/${file}.md`);
-          if (response.ok) {
-            content = await response.text();
-            CONTENT_CACHE[cacheKey] = content;
-          }
-        } catch (e) {
-          continue;
+            breadcrumb.appendChild(homeBreadcrumb);
+
+            if (folder !== 'home') {
+                const folderTitle = CONTENT_STRUCTURE[folder]?.title || titleCase(folder);
+                const folderCrumb = document.createElement('span');
+                folderCrumb.textContent = ' / ' + folderTitle;
+                breadcrumb.appendChild(folderCrumb);
+            }
+
+            if (file !== 'index') {
+                const fileTitle = formatFileName(file);
+                const fileCrumb = document.createElement('span');
+                fileCrumb.textContent = ' / ' + fileTitle;
+                breadcrumb.appendChild(fileCrumb);
+            }
         }
-      }
-      
-      if (content) {
-        const searchText = (file + ' ' + content).toLowerCase();
-        if (searchText.includes(q)) {
-          // Find the position of the match for better excerpt
-          const matchIndex = searchText.indexOf(q);
-          const start = Math.max(0, matchIndex - 60);
-          const end = Math.min(content.length, matchIndex + q.length + 60);
-          const excerpt = content.slice(start, end).replace(/\n/g, ' ').trim();
-          
-          results.push({
-            folder,
-            file,
-            excerpt: (start > 0 ? '...' : '') + excerpt + (end < content.length ? '...' : '')
-          });
+
+        // ---- Routing ----
+        /**
+         * Router function - handles hash-based routing and content display
+         * Pattern: #/folder/file or default to #/home/index
+         */
+        async function router() {
+            // Parse hash: #/folder/file
+            let hash = window.location.hash.slice(1) || '/home/index';
+            const parts = hash.split('/').filter(p => p);
+
+            let folder = parts[0] || 'home';
+            let file = parts[1] || 'index';
+
+            // Validate folder exists
+            if (!CONTENT_STRUCTURE[folder]) {
+                window.location.hash = '#/home/index';
+                return;
+            }
+
+            // Load content
+            const content = await loadMarkdown(folder, file);
+            if (!content) {
+                window.location.hash = '#/home/index';
+                return;
+            }
+
+            // Update UI
+            updateActiveLink(folder, file);
+            buildBreadcrumb(folder, file);
+            
+            const contentDiv = document.getElementById('content');
+            contentDiv.innerHTML = `<h1>${content.frontmatter.title || formatFileName(file)}</h1>\n${content.html}`;
+
+            // Scroll to top
+            contentDiv.scrollTop = 0;
         }
-      }
-    }
-  }
-  
-  return results;
-}
 
-// Wire up search UI - now supports multiple search inputs
-function wireUpSearch(searchInputId, resultsElId) {
-  const searchInput = document.getElementById(searchInputId);
-  const resultsEl = document.getElementById(resultsElId);
-  
-  if (!searchInput || !resultsEl) return;
-  
-  let searchTimeout;
+        // ---- Search Functionality ----
+        /**
+         * Searches content cache for matching terms
+         * Returns array of matching pages
+         */
+        function searchDocs(query) {
+            if (!query.trim()) return [];
 
-  searchInput.addEventListener('input', async (e) => {
-    clearTimeout(searchTimeout);
-    const q = e.target.value.trim();
-    
-    searchTimeout = setTimeout(async () => {
-      if (!q) {
-        resultsEl.style.display = 'none';
-        resultsEl.innerHTML = '';
-        return;
-      }
-      
-      const res = await searchDocs(q);
-      
-      if (res.length === 0) {
-        resultsEl.style.display = 'block';
-        resultsEl.innerHTML = '<div class="result">No results found</div>';
-        return;
-      }
-      
-      resultsEl.style.display = 'block';
-      resultsEl.innerHTML = res.map(r => `
-        <div class="result">
-          <a href="#/${r.folder}/${r.file}">
-            <strong>${formatFileName(r.folder)} / ${formatFileName(r.file)}</strong>
-            <div class="excerpt">${r.excerpt}</div>
-          </a>
-        </div>
-      `).join('');
-
-      // Click behavior for results
-      Array.from(resultsEl.querySelectorAll('a')).forEach(a => {
-        a.addEventListener('click', () => {
-          resultsEl.style.display = 'none';
-          searchInput.value = '';
-        });
-      });
-    }, 200);
-  });
-
-  // Close search results when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) {
-      resultsEl.style.display = 'none';
-    }
-  });
-}
-
-// Wire up header search
-if (document.getElementById('search-header')) {
-  wireUpSearch('search-header', 'search-results-header');
-}
-
-// Controls
-document.getElementById('toggle-theme').addEventListener('click', () => {
-  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  setTheme(cur === 'dark' ? 'light' : 'dark');
-});
-
-let sidebarVisible = false;
-const sidebar = document.getElementById('sidebar');
-
-function toggleSidebar() {
-  sidebarVisible = !sidebarVisible;
-  if (sidebarVisible) {
-    sidebar.classList.add('visible');
-    document.body.style.overflow = 'hidden'; // Prevent body scroll on mobile
-    
-    // Add overlay for mobile
-    if (window.innerWidth <= 1024) {
-      let overlay = document.querySelector('.sidebar-overlay');
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.className = 'sidebar-overlay';
-        overlay.addEventListener('click', toggleSidebar);
-        document.body.appendChild(overlay);
-      }
-      setTimeout(() => overlay.classList.add('visible'), 10);
-    }
-    
-    // Update search visibility when sidebar is toggled
-    updateSearchVisibility();
-  } else {
-    sidebar.classList.remove('visible');
-    document.body.style.overflow = ''; // Restore body scroll
-    
-    // Remove overlay
-    const overlay = document.querySelector('.sidebar-overlay');
-    if (overlay) {
-      overlay.classList.remove('visible');
-      setTimeout(() => {
-        if (overlay && !sidebarVisible) {
-          overlay.remove();
+            const lowerQuery = query.toLowerCase();
+            return SEARCH_CACHE.filter(item =>
+                item.title.toLowerCase().includes(lowerQuery) ||
+                item.content.toLowerCase().includes(lowerQuery)
+            ).slice(0, 10);
         }
-      }, 350);
-    }
-    
-    // Update search visibility when sidebar is toggled
-    updateSearchVisibility();
-  }
-}
 
-document.getElementById('toggle-sidebar').addEventListener('click', toggleSidebar);
+        /**
+         * Wires up search input and results display
+         */
+        function wireUpSearch() {
+            const searchInput = document.getElementById('search-input');
+            const searchResults = document.getElementById('search-results');
+            let debounceTimer;
 
-// Auto-close sidebar on mobile when clicking a link
-sidebar.addEventListener('click', (e) => {
-  if (window.innerWidth <= 1024 && e.target.tagName === 'A') {
-    setTimeout(() => toggleSidebar(), 100);
-  }
-});
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const query = e.target.value;
 
-// Close sidebar on escape key
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && sidebarVisible && window.innerWidth <= 1024) {
-    toggleSidebar();
-  }
-});
+                debounceTimer = setTimeout(() => {
+                    if (!query.trim()) {
+                        searchResults.classList.remove('active');
+                        return;
+                    }
 
-// Keyboard shortcuts
-document.addEventListener('keydown', (e) => {
-  // Ctrl/Cmd + K to focus search
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-    e.preventDefault();
-    const searchInput = document.getElementById('search-header');
-    if (searchInput) searchInput.focus();
-  }
-  
-  // Escape to close search
-  const searchInput = document.getElementById('search-header');
-  const resultsEl = document.getElementById('search-results-header');
-  if (e.key === 'Escape' && searchInput && document.activeElement === searchInput) {
-    searchInput.blur();
-    if (resultsEl) resultsEl.style.display = 'none';
-  }
-});
+                    const results = searchDocs(query);
+                    searchResults.innerHTML = results.map(r => `
+                        <div class="search-result-item" onclick="window.location.hash = '${r.path}'">
+                            <div class="title">${r.title}</div>
+                            <div class="path">${r.folder}/${r.file}</div>
+                        </div>
+                    `).join('');
 
-// Handle window resize for responsive sidebar
-let resizeTimeout;
-window.addEventListener('resize', () => {
-  clearTimeout(resizeTimeout);
-  resizeTimeout = setTimeout(() => {
-    // Rebuild sidebar to add/remove close button based on screen size
-    if (window.innerWidth > 1024 && sidebarVisible) {
-      // Close sidebar when switching to desktop
-      toggleSidebar();
-    }
-    buildSidebar();
-    buildTopMenu();
-    updateActiveLink();
-    updateTopMenuActive();
-  }, 250);
-});
+                    searchResults.classList.toggle('active', results.length > 0);
+                }, 200);
+            });
 
-// Initialize
-(async function() {
-  await discoverContentStructure(); // Discover content structure (with fallback)
-  await loadThemeConfig(); // Load theme colors from config file
-  await loadMenuConfig(); // Load menu configuration from frontmatter
-  await loadLayout();
-  buildSidebar();
-  buildTopMenu();
-  updateSearchVisibility();
-  window.addEventListener('hashchange', router);
-  window.addEventListener('load', () => {
-    router();
-  });
-  router(); // Load initial page
-})();
-</script>
+            // Close search on focus loss
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => searchResults.classList.remove('active'), 100);
+            });
+        }
+
+        // ---- UI Controls ----
+        /**
+         * Theme toggle - switches between light and dark mode
+         * Persists preference to localStorage
+         */
+        function setupThemeToggle() {
+            const themeBtn = document.getElementById('theme-toggle');
+            const savedTheme = localStorage.getItem('theme') || 'light';
+
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                themeBtn.textContent = '☀️';
+            }
+
+            themeBtn.addEventListener('click', () => {
+                document.body.classList.toggle('dark-mode');
+                const isDark = document.body.classList.contains('dark-mode');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                themeBtn.textContent = isDark ? '☀️' : '🌙';
+                applyThemeColors(THEME_CONFIG);
+            });
+        }
+
+        /**
+         * Mobile menu toggle
+         */
+        function setupMobileMenu() {
+            const menuBtn = document.getElementById('menu-toggle');
+            const sidebar = document.getElementById('sidebar');
+
+            menuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('mobile-hidden');
+            });
+
+            // Close menu when link clicked on mobile
+            if (window.innerWidth <= 768) {
+                sidebar.querySelectorAll('a').forEach(link => {
+                    link.addEventListener('click', () => {
+                        sidebar.classList.add('mobile-hidden');
+                    });
+                });
+            }
+        }
+
+        /**
+         * Keyboard shortcuts
+         * Ctrl+K: Focus search
+         * Escape: Close search results
+         */
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                }
+                if (e.key === 'Escape') {
+                    document.getElementById('search-results').classList.remove('active');
+                }
+            });
+        }
+
+        // ---- Initialization ----
+        /**
+         * Main initialization function - runs on page load
+         * Loads config, builds UI, and sets up event listeners
+         */
+        async function init() {
+            try {
+                // Load configuration
+                const manifest = await initializeConfig();
+                
+                // Discover content structure
+                await discoverContent();
+                
+                // Build navigation
+                await buildSidebar();
+                
+                // Load layout (header/footer)
+                const layout = await loadLayout(manifest);
+                if (layout.footerHTML) {
+                    document.getElementById('footer').innerHTML = layout.footerHTML;
+                }
+                
+                // Warm up search cache by loading all content
+                for (const [folder, data] of Object.entries(CONTENT_STRUCTURE)) {
+                    for (const page of data.pages) {
+                        const fileName = typeof page === 'string' ? page : page.name;
+                        await loadMarkdown(folder, fileName);
+                    }
+                }
+                
+                // Set up UI controls
+                setupThemeToggle();
+                setupMobileMenu();
+                setupKeyboardShortcuts();
+                wireUpSearch();
+                
+                // Start router
+                window.addEventListener('hashchange', router);
+                await router();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('content').innerHTML = '<h1>Error loading site</h1><p>Please refresh the page.</p>';
+            }
+        }
+
+        // Run initialization when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
 </body>
 </html>
