@@ -3,88 +3,717 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Vanilla SPA — Markdown Docs</title>
+  <meta name="description" content="A modern, professional markdown-powered single-page application" />
+  <title>Markdown Documentation Site</title>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg: #f5f7fa; --card:#ffffff; --muted:#6b7280; --accent:#2563eb; --text:#0f172a; --nav:#111827;
+    :root {
+      --bg: #fafbfc;
+      --card: #ffffff;
+      --muted: #6b7280;
+      --muted-light: #9ca3af;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --text: #111827;
+      --text-secondary: #374151;
+      --nav: #ffffff;
+      --border: #e5e7eb;
+      --border-light: #f3f4f6;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    [data-theme="dark"]{
-      --bg:#0b1220; --card:#071026; --muted:#9ca3af; --accent:#60a5fa; --text:#e6eef8; --nav:#020617;
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --muted: #94a3b8;
+      --muted-light: #64748b;
+      --accent: #60a5fa;
+      --accent-hover: #3b82f6;
+      --text: #f1f5f9;
+      --text-secondary: #cbd5e1;
+      --nav: #1e293b;
+      --border: #334155;
+      --border-light: #1e293b;
+      --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
     }
 
-    *{box-sizing:border-box}
-    body{font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; margin:0; background:var(--bg); color:var(--text)}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    header{background:var(--nav); color:var(--text); padding:14px 18px; display:flex; align-items:center; gap:12px}
-    header h1{font-size:18px; margin:0}
-    header .controls{margin-left:auto; display:flex; gap:8px; align-items:center}
-    header button{background:transparent; border:1px solid rgba(255,255,255,0.06); color:var(--text); padding:8px 10px; border-radius:8px; cursor:pointer}
+    html {
+      scroll-behavior: smooth;
+    }
 
-    nav.top{display:flex; gap:8px; align-items:center; padding:10px 18px; background:linear-gradient(90deg, rgba(0,0,0,0.02), transparent)}
-    nav.top input[type=search]{width:320px; padding:8px 10px; border-radius:8px; border:1px solid #ddd}
+    body {
+      font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
 
-    #layout{display:flex; gap:20px; max-width:1100px; margin:20px auto; padding:0 16px}
-    #sidebar{width:280px; background:var(--card); border-radius:10px; padding:12px; box-shadow:0 6px 18px rgba(2,6,23,0.06); height:calc(100vh - 180px); overflow:auto}
+    /* Header */
+    header {
+      background: var(--nav);
+      color: var(--text);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.8);
+      transition: var(--transition);
+    }
 
-    .folder{margin-bottom:8px}
-    .folder-header{display:flex; justify-content:space-between; align-items:center; cursor:pointer; padding:8px; border-radius:8px}
-    .folder-header:hover{background:rgba(0,0,0,0.03)}
-    .folder-title{font-weight:600}
-    .files{padding-left:8px; margin-top:6px}
-    .files a{display:block; padding:6px 8px; border-radius:6px; text-decoration:none; color:var(--text)}
-    .files a:hover{background:rgba(0,0,0,0.03)}
+    [data-theme="dark"] header {
+      background: rgba(30, 41, 59, 0.8);
+    }
 
-    #main{flex:1}
-    .card{background:var(--card); border-radius:10px; padding:22px; box-shadow:0 6px 18px rgba(2,6,23,0.06); min-height:300px}
+    header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
 
-    .breadcrumbs{font-size:14px; color:var(--muted); margin-bottom:12px}
-    .search-results{position:absolute; background:var(--card); width:320px; max-height:320px; overflow:auto; box-shadow:0 6px 18px rgba(2,6,23,0.08); border-radius:8px; margin-top:6px}
-    .result{padding:8px 10px; border-bottom:1px solid rgba(0,0,0,0.03)}
-    .result a{color:var(--text); text-decoration:none}
+    header .controls {
+      margin-left: auto;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
 
-    footer{max-width:1100px;margin:28px auto; color:var(--muted); font-size:13px}
+    header button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.5rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
 
-    @media (max-width:900px){#sidebar{display:none} header h1{font-size:15px} nav.top input[type=search]{width:180px}}
+    header button:hover {
+      background: var(--border-light);
+      border-color: var(--accent);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    header button:active {
+      transform: translateY(0);
+    }
+
+    /* Navigation Bar */
+    nav.top {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    nav.top .search-container {
+      position: relative;
+      flex: 1;
+      max-width: 400px;
+    }
+
+    nav.top input[type="search"] {
+      width: 100%;
+      padding: 0.75rem 1rem 0.75rem 2.5rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.9375rem;
+      transition: var(--transition);
+    }
+
+    nav.top input[type="search"]:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    nav.top input[type="search"]::placeholder {
+      color: var(--muted);
+    }
+
+    nav.top .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* Layout */
+    #layout {
+      display: flex;
+      gap: 1.5rem;
+      max-width: 1400px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 280px;
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      box-shadow: var(--shadow-md);
+      height: calc(100vh - 200px);
+      overflow-y: auto;
+      overflow-x: hidden;
+      position: sticky;
+      top: 100px;
+      border: 1px solid var(--border-light);
+      transition: var(--transition);
+    }
+
+    #sidebar::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #sidebar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    #sidebar::-webkit-scrollbar-thumb:hover {
+      background: var(--muted-light);
+    }
+
+    .folder {
+      margin-bottom: 0.5rem;
+    }
+
+    .folder-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      padding: 0.625rem 0.75rem;
+      border-radius: var(--radius-sm);
+      transition: var(--transition);
+      user-select: none;
+    }
+
+    .folder-header:hover {
+      background: var(--border-light);
+    }
+
+    .folder-title {
+      font-weight: 600;
+      font-size: 0.9375rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .folder-icon {
+      font-size: 0.875rem;
+      opacity: 0.7;
+    }
+
+    .folder-toggle {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      transition: var(--transition);
+    }
+
+    .folder-header:hover .folder-toggle {
+      opacity: 1;
+    }
+
+    .files {
+      padding-left: 1.5rem;
+      margin-top: 0.25rem;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .folder.expanded .files {
+      max-height: 500px;
+      margin-top: 0.5rem;
+    }
+
+    .files a {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      transition: var(--transition);
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+
+    .files a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+      transition: var(--transition);
+    }
+
+    .files a:hover {
+      background: var(--border-light);
+      color: var(--text);
+      padding-left: 1rem;
+    }
+
+    .files a:hover::before {
+      height: 60%;
+    }
+
+    .files a.active {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .files a.active::before {
+      height: 60%;
+    }
+
+    /* Main Content */
+    #main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 2.5rem;
+      box-shadow: var(--shadow-md);
+      min-height: 400px;
+      border: 1px solid var(--border-light);
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Markdown Content Styling */
+    #content h1 {
+      font-size: 2.25rem;
+      font-weight: 700;
+      margin: 0 0 1.5rem 0;
+      color: var(--text);
+      line-height: 1.2;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 0.75rem;
+    }
+
+    #content h2 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin: 2rem 0 1rem 0;
+      color: var(--text);
+      line-height: 1.3;
+    }
+
+    #content h3 {
+      font-size: 1.375rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.75rem 0;
+      color: var(--text);
+    }
+
+    #content h4 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.5rem 0;
+      color: var(--text);
+    }
+
+    #content p {
+      margin: 0 0 1.25rem 0;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    #content ul, #content ol {
+      margin: 0 0 1.25rem 0;
+      padding-left: 1.75rem;
+      color: var(--text-secondary);
+    }
+
+    #content li {
+      margin: 0.5rem 0;
+      line-height: 1.7;
+    }
+
+    #content code {
+      background: var(--border-light);
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.875em;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      color: var(--accent);
+    }
+
+    #content pre {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow);
+    }
+
+    #content pre code {
+      background: none;
+      padding: 0;
+      color: var(--text);
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    #content blockquote {
+      border-left: 4px solid var(--accent);
+      padding-left: 1.25rem;
+      margin: 1.5rem 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    #content a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+      transition: var(--transition);
+    }
+
+    #content a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    #content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    #content th, #content td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    #content th {
+      background: var(--border-light);
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    #content tr:hover {
+      background: var(--border-light);
+    }
+
+    #content hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 2rem 0;
+    }
+
+    #content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      margin: 1.5rem 0;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Breadcrumbs */
+    .breadcrumbs {
+      font-size: 0.875rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .breadcrumbs a {
+      color: var(--muted);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+
+    .breadcrumbs a:hover {
+      color: var(--accent);
+    }
+
+    .breadcrumbs .separator {
+      color: var(--muted-light);
+    }
+
+    /* Search Results */
+    .search-results {
+      position: absolute;
+      background: var(--card);
+      width: 100%;
+      max-height: 400px;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      border-radius: var(--radius-sm);
+      margin-top: 0.5rem;
+      border: 1px solid var(--border);
+      z-index: 50;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    .result {
+      padding: 0.875rem 1rem;
+      border-bottom: 1px solid var(--border-light);
+      transition: var(--transition);
+    }
+
+    .result:last-child {
+      border-bottom: none;
+    }
+
+    .result:hover {
+      background: var(--border-light);
+    }
+
+    .result a {
+      color: var(--text);
+      text-decoration: none;
+      display: block;
+    }
+
+    .result strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .result .excerpt {
+      color: var(--muted);
+      font-size: 0.8125rem;
+      margin-top: 0.25rem;
+    }
+
+    /* Loading State */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: var(--muted);
+    }
+
+    .loading::after {
+      content: '';
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-left: 0.75rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Footer */
+    footer {
+      max-width: 1400px;
+      margin: 3rem auto 2rem;
+      padding: 0 1.5rem;
+      color: var(--muted);
+      font-size: 0.875rem;
+      text-align: center;
+      border-top: 1px solid var(--border-light);
+      padding-top: 2rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      #layout {
+        flex-direction: column;
+      }
+
+      #sidebar {
+        width: 100%;
+        height: auto;
+        position: static;
+        max-height: 400px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      header {
+        padding: 0.875rem 1rem;
+      }
+
+      header h1 {
+        font-size: 1.125rem;
+      }
+
+      header button {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+      }
+
+      nav.top {
+        padding: 0.875rem 1rem;
+      }
+
+      nav.top .search-container {
+        max-width: 100%;
+      }
+
+      #layout {
+        margin: 1rem auto;
+        padding: 0 1rem;
+        gap: 1rem;
+      }
+
+      .card {
+        padding: 1.5rem;
+      }
+
+      #content h1 {
+        font-size: 1.875rem;
+      }
+
+      #content h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    /* Active link highlight */
+    .files a[href*="#"] {
+      position: relative;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1 id="header-title">Vanilla Markdown SPA</h1>
+  <h1 id="header-title">Documentation</h1>
   <div class="controls">
-    <button id="toggle-theme" title="Toggle dark mode">Toggle Theme</button>
-    <button id="toggle-sidebar" title="Toggle sidebar">Toggle Sidebar</button>
+    <button id="toggle-theme" title="Toggle dark mode" aria-label="Toggle theme">
+      <span id="theme-icon">🌙</span>
+      <span id="theme-text">Dark</span>
+    </button>
+    <button id="toggle-sidebar" title="Toggle sidebar" aria-label="Toggle sidebar">
+      <span>☰</span>
+    </button>
   </div>
 </header>
 
 <nav class="top">
-  <div style="position:relative">
-    <input id="search" type="search" placeholder="Search docs (title or content)..." aria-label="Search docs" />
+  <div class="search-container">
+    <span class="search-icon">🔍</span>
+    <input id="search" type="search" placeholder="Search documentation..." aria-label="Search documentation" />
     <div id="search-results" class="search-results" style="display:none"></div>
   </div>
-  <div style="margin-left:auto" id="breadcrumb-wrap"></div>
+  <div id="breadcrumb-wrap"></div>
 </nav>
 
 <div id="layout">
   <aside id="sidebar"></aside>
 
   <main id="main">
-    <div id="content" class="card">Loading...</div>
+    <div id="content" class="card">
+      <div class="loading">Loading content</div>
+    </div>
   </main>
 </div>
 
 <footer>
-  <div id="layout-footer">Made with ❤️ — single-file static SPA</div>
+  <div id="layout-footer">© 2025 — Built with ❤️</div>
 </footer>
 
 <script>
-// Content structure - will be populated from actual files
+// Content structure
 const CONTENT_STRUCTURE = {
   home: ['index'],
   about: ['index', 'team'],
   blog: ['index', 'first-post', 'second-post'],
   docs: ['index', 'installation', 'usage']
+};
+
+// Folder icons
+const FOLDER_ICONS = {
+  home: '🏠',
+  about: 'ℹ️',
+  blog: '📝',
+  docs: '📚'
 };
 
 // Cache for loaded markdown content
@@ -94,12 +723,33 @@ const CONTENT_CACHE = {};
 let LAYOUT = { header: `# My Site`, footer: `© ${new Date().getFullYear()} — Built with ❤️` };
 
 // Helpers
-function titleCase(s){ return s.charAt(0).toUpperCase()+s.slice(1) }
+function titleCase(s) {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
 
-// Theme
+function formatFileName(file) {
+  return file === 'index' ? 'Overview' : file.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
+
+// Theme management
 const root = document.documentElement;
-function setTheme(t){ if(t==='dark') root.setAttribute('data-theme','dark'); else root.removeAttribute('data-theme'); localStorage.setItem('spa-theme',t)}
-(function(){ const saved = localStorage.getItem('spa-theme')||'light'; setTheme(saved); })();
+function setTheme(t) {
+  if (t === 'dark') {
+    root.setAttribute('data-theme', 'dark');
+    document.getElementById('theme-icon').textContent = '☀️';
+    document.getElementById('theme-text').textContent = 'Light';
+  } else {
+    root.removeAttribute('data-theme');
+    document.getElementById('theme-icon').textContent = '🌙';
+    document.getElementById('theme-text').textContent = 'Dark';
+  }
+  localStorage.setItem('spa-theme', t);
+}
+
+(function() {
+  const saved = localStorage.getItem('spa-theme') || 'light';
+  setTheme(saved);
+})();
 
 // Load markdown file from content directory
 async function loadMarkdown(folder, file) {
@@ -119,7 +769,7 @@ async function loadMarkdown(folder, file) {
     return text;
   } catch (error) {
     console.error('Error loading markdown:', error);
-    return `# Error\n\nFailed to load content: ${folder}/${file}`;
+    return `# Error\n\nFailed to load content: ${folder}/${file}\n\nPlease ensure the file exists at \`content/${folder}/${file}.md\`.`;
   }
 }
 
@@ -133,7 +783,6 @@ async function loadLayout() {
     
     if (headerRes && headerRes.ok) {
       const headerText = await headerRes.text();
-      // Extract title from header (first line or first # heading)
       const headerLines = headerText.split('\n');
       const titleLine = headerLines.find(line => line.trim().startsWith('#'));
       if (titleLine) {
@@ -144,7 +793,6 @@ async function loadLayout() {
     
     if (footerRes && footerRes.ok) {
       LAYOUT.footer = await footerRes.text();
-      // Remove frontmatter if present
       LAYOUT.footer = LAYOUT.footer.replace(/^---\s*\n[\s\S]*?\n---\s*\n/, '');
       document.getElementById('layout-footer').innerHTML = marked.parse(LAYOUT.footer);
     }
@@ -154,85 +802,171 @@ async function loadLayout() {
 }
 
 // Build sidebar with collapsible folders
-function buildSidebar(){
-  const sb = document.getElementById('sidebar'); sb.innerHTML='';
-  for(const folder of Object.keys(CONTENT_STRUCTURE)){
-    const f = document.createElement('div'); f.className='folder';
-    const head = document.createElement('div'); head.className='folder-header';
-    const title = document.createElement('div'); title.className='folder-title'; title.textContent = titleCase(folder);
-    const foldBtn = document.createElement('div'); foldBtn.textContent='▾'; foldBtn.style.opacity=0.7;
-    head.appendChild(title); head.appendChild(foldBtn);
+function buildSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.innerHTML = '';
+  
+  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
+    const f = document.createElement('div');
+    f.className = 'folder';
+    if (folder === 'home') {
+      f.classList.add('expanded');
+    }
+    
+    const head = document.createElement('div');
+    head.className = 'folder-header';
+    
+    const title = document.createElement('div');
+    title.className = 'folder-title';
+    const icon = document.createElement('span');
+    icon.className = 'folder-icon';
+    icon.textContent = FOLDER_ICONS[folder] || '📁';
+    title.appendChild(icon);
+    title.appendChild(document.createTextNode(titleCase(folder)));
+    
+    const foldBtn = document.createElement('div');
+    foldBtn.className = 'folder-toggle';
+    foldBtn.textContent = f.classList.contains('expanded') ? '▾' : '▸';
+    
+    head.appendChild(title);
+    head.appendChild(foldBtn);
 
-    const filesDiv = document.createElement('div'); filesDiv.className='files';
-    for(const file of CONTENT_STRUCTURE[folder]){
-      const link = document.createElement('a'); 
-      link.href = `#/${folder}/${file}`; 
-      link.textContent = file === 'index' ? 'Overview' : file.replace(/-/g, ' '); 
+    const filesDiv = document.createElement('div');
+    filesDiv.className = 'files';
+    
+    for (const file of CONTENT_STRUCTURE[folder]) {
+      const link = document.createElement('a');
+      link.href = `#/${folder}/${file}`;
+      link.textContent = formatFileName(file);
+      link.setAttribute('data-folder', folder);
+      link.setAttribute('data-file', file);
       filesDiv.appendChild(link);
     }
 
-    head.addEventListener('click', ()=>{
-      const expanded = filesDiv.style.display !== 'none' && filesDiv.style.display !== '';
-      filesDiv.style.display = expanded ? 'none' : 'block';
-      foldBtn.textContent = expanded ? '▸' : '▾';
+    head.addEventListener('click', () => {
+      f.classList.toggle('expanded');
+      foldBtn.textContent = f.classList.contains('expanded') ? '▾' : '▸';
     });
 
-    // default collapse behavior: show only 'home' open
-    filesDiv.style.display = folder==='home' ? 'block' : 'none';
-    foldBtn.textContent = folder==='home' ? '▾' : '▸';
+    f.appendChild(head);
+    f.appendChild(filesDiv);
+    sb.appendChild(f);
+  }
+  
+  updateActiveLink();
+}
 
-    f.appendChild(head); f.appendChild(filesDiv); sb.appendChild(f);
+// Update active link in sidebar
+function updateActiveLink() {
+  const hash = location.hash || '#/home';
+  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
+  const folder = parts[0] || 'home';
+  const file = parts[1] || 'index';
+  
+  // Remove all active classes
+  document.querySelectorAll('.files a').forEach(a => a.classList.remove('active'));
+  
+  // Add active class to current link
+  const activeLink = document.querySelector(`.files a[data-folder="${folder}"][data-file="${file}"]`);
+  if (activeLink) {
+    activeLink.classList.add('active');
+    // Expand parent folder
+    const folderEl = activeLink.closest('.folder');
+    if (folderEl) {
+      folderEl.classList.add('expanded');
+      folderEl.querySelector('.folder-toggle').textContent = '▾';
+    }
   }
 }
 
 // Breadcrumbs
-function buildBreadcrumb(hash){
-  const wrap = document.getElementById('breadcrumb-wrap'); wrap.innerHTML='';
-  const parts = hash.replace(/^#\//,'').split('/').filter(Boolean);
-  if(parts.length===0){ wrap.textContent=''; return }
-  const nav = document.createElement('div'); nav.className='breadcrumbs';
-  let accum='#';
-  const rootLink = document.createElement('a'); rootLink.href='#/home'; rootLink.textContent='Home'; rootLink.style.marginRight='8px'; rootLink.style.color='var(--muted)'; nav.appendChild(rootLink);
-  for(let i=0;i<parts.length;i++){
-    const p = parts[i]; accum += '/' + p;
-    const sep = document.createElement('span'); sep.textContent=' / '; sep.style.color='var(--muted)'; nav.appendChild(sep);
-    const a = document.createElement('a'); a.href = accum; a.textContent = p === 'index' ? 'Overview' : p.replace(/-/g, ' '); a.style.marginLeft='6px'; a.style.color='var(--muted)'; nav.appendChild(a);
+function buildBreadcrumb(hash) {
+  const wrap = document.getElementById('breadcrumb-wrap');
+  wrap.innerHTML = '';
+  const parts = hash.replace(/^#\//, '').split('/').filter(Boolean);
+  
+  if (parts.length === 0) {
+    wrap.textContent = '';
+    return;
   }
+  
+  const nav = document.createElement('div');
+  nav.className = 'breadcrumbs';
+  
+  const rootLink = document.createElement('a');
+  rootLink.href = '#/home';
+  rootLink.textContent = 'Home';
+  nav.appendChild(rootLink);
+  
+  let accum = '#';
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i];
+    accum += '/' + p;
+    
+    const sep = document.createElement('span');
+    sep.className = 'separator';
+    sep.textContent = ' / ';
+    nav.appendChild(sep);
+    
+    const a = document.createElement('a');
+    a.href = accum;
+    a.textContent = p === 'index' ? 'Overview' : formatFileName(p);
+    nav.appendChild(a);
+  }
+  
   wrap.appendChild(nav);
 }
 
 // Router: load content based on hash
-async function router(){
+async function router() {
   const raw = location.hash || '#/home';
-  const parts = raw.replace(/^#\//,'').split('/').filter(Boolean);
+  const parts = raw.replace(/^#\//, '').split('/').filter(Boolean);
   const folder = parts[0] || 'home';
   const file = parts[1] || 'index';
   
+  // Show loading state
+  document.getElementById('content').innerHTML = '<div class="loading">Loading content</div>';
+  
   // Check if folder exists in structure
   if (!CONTENT_STRUCTURE[folder] || !CONTENT_STRUCTURE[folder].includes(file)) {
-    document.getElementById('content').innerHTML = `<h1>404</h1><p>Page not found: ${folder}/${file}</p>`;
+    document.getElementById('content').innerHTML = `
+      <h1>404 - Page Not Found</h1>
+      <p>The page you're looking for doesn't exist: <code>${folder}/${file}</code></p>
+      <p><a href="#/home">← Return to Home</a></p>
+    `;
     buildBreadcrumb(location.hash || '#/home');
+    updateActiveLink();
     return;
   }
   
-  const md = await loadMarkdown(folder, file);
-  document.getElementById('content').innerHTML = marked.parse(md);
-  buildBreadcrumb(location.hash || '#/home');
+  try {
+    const md = await loadMarkdown(folder, file);
+    document.getElementById('content').innerHTML = marked.parse(md);
+    buildBreadcrumb(location.hash || '#/home');
+    updateActiveLink();
+    
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (error) {
+    document.getElementById('content').innerHTML = `
+      <h1>Error</h1>
+      <p>Failed to load content. Please try again later.</p>
+      <p><a href="#/home">← Return to Home</a></p>
+    `;
+  }
 }
 
-// Search: simple full-text search through loaded content
-async function searchDocs(q){
-  if(!q) return [];
+// Search: full-text search through content
+async function searchDocs(q) {
+  if (!q) return [];
   q = q.toLowerCase();
   const results = [];
   
-  // Load all content for search (or search cached content)
-  for(const folder of Object.keys(CONTENT_STRUCTURE)){
-    for(const file of CONTENT_STRUCTURE[folder]){
+  for (const folder of Object.keys(CONTENT_STRUCTURE)) {
+    for (const file of CONTENT_STRUCTURE[folder]) {
       const cacheKey = `${folder}/${file}`;
       let content = CONTENT_CACHE[cacheKey];
       
-      // If not cached, try to load it
       if (!content) {
         try {
           const response = await fetch(`content/${folder}/${file}.md`);
@@ -246,17 +980,24 @@ async function searchDocs(q){
       }
       
       if (content) {
-        const text = (file + ' ' + content).toLowerCase();
-        if(text.includes(q)){
+        const searchText = (file + ' ' + content).toLowerCase();
+        if (searchText.includes(q)) {
+          // Find the position of the match for better excerpt
+          const matchIndex = searchText.indexOf(q);
+          const start = Math.max(0, matchIndex - 60);
+          const end = Math.min(content.length, matchIndex + q.length + 60);
+          const excerpt = content.slice(start, end).replace(/\n/g, ' ').trim();
+          
           results.push({
             folder,
             file,
-            excerpt: content.slice(0,120).replace(/\n/g,' ')
+            excerpt: (start > 0 ? '...' : '') + excerpt + (end < content.length ? '...' : '')
           });
         }
       }
     }
   }
+  
   return results;
 }
 
@@ -264,43 +1005,91 @@ async function searchDocs(q){
 const searchInput = document.getElementById('search');
 const resultsEl = document.getElementById('search-results');
 let searchTimeout;
-searchInput.addEventListener('input', async (e)=>{
+
+searchInput.addEventListener('input', async (e) => {
   clearTimeout(searchTimeout);
   const q = e.target.value.trim();
-  searchTimeout = setTimeout(async ()=>{
-    if(!q){ resultsEl.style.display='none'; resultsEl.innerHTML=''; return }
+  
+  searchTimeout = setTimeout(async () => {
+    if (!q) {
+      resultsEl.style.display = 'none';
+      resultsEl.innerHTML = '';
+      return;
+    }
+    
     const res = await searchDocs(q);
-    if(res.length===0){ resultsEl.style.display='block'; resultsEl.innerHTML = '<div class="result">No results</div>'; return }
-    resultsEl.style.display='block';
-    resultsEl.innerHTML = res.map(r=>`<div class="result"><a href="#/${r.folder}/${r.file}"><strong>${r.folder}/${r.file}</strong></a><div style="color:var(--muted);font-size:13px">${r.excerpt}…</div></div>`).join('');
+    
+    if (res.length === 0) {
+      resultsEl.style.display = 'block';
+      resultsEl.innerHTML = '<div class="result">No results found</div>';
+      return;
+    }
+    
+    resultsEl.style.display = 'block';
+    resultsEl.innerHTML = res.map(r => `
+      <div class="result">
+        <a href="#/${r.folder}/${r.file}">
+          <strong>${formatFileName(r.folder)} / ${formatFileName(r.file)}</strong>
+          <div class="excerpt">${r.excerpt}</div>
+        </a>
+      </div>
+    `).join('');
 
-    // click behaviour for results
-    Array.from(resultsEl.querySelectorAll('a')).forEach(a=>{
-      a.addEventListener('click', ()=>{ resultsEl.style.display='none'; searchInput.value=''; });
+    // Click behavior for results
+    Array.from(resultsEl.querySelectorAll('a')).forEach(a => {
+      a.addEventListener('click', () => {
+        resultsEl.style.display = 'none';
+        searchInput.value = '';
+      });
     });
-  },150);
+  }, 200);
+});
+
+// Close search results when clicking outside
+document.addEventListener('click', (e) => {
+  if (!searchInput.contains(e.target) && !resultsEl.contains(e.target)) {
+    resultsEl.style.display = 'none';
+  }
 });
 
 // Controls
-document.getElementById('toggle-theme').addEventListener('click', ()=>{
+document.getElementById('toggle-theme').addEventListener('click', () => {
   const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
-  setTheme(cur==='dark' ? 'light' : 'dark');
+  setTheme(cur === 'dark' ? 'light' : 'dark');
 });
 
-let sidebarVisible=true;
-document.getElementById('toggle-sidebar').addEventListener('click', ()=>{
-  const sb = document.getElementById('sidebar'); sidebarVisible = !sidebarVisible; sb.style.display = sidebarVisible ? 'block' : 'none';
+let sidebarVisible = true;
+document.getElementById('toggle-sidebar').addEventListener('click', () => {
+  const sb = document.getElementById('sidebar');
+  sidebarVisible = !sidebarVisible;
+  sb.style.display = sidebarVisible ? 'block' : 'none';
 });
 
-// Init
+// Keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  // Ctrl/Cmd + K to focus search
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault();
+    searchInput.focus();
+  }
+  
+  // Escape to close search
+  if (e.key === 'Escape' && document.activeElement === searchInput) {
+    searchInput.blur();
+    resultsEl.style.display = 'none';
+  }
+});
+
+// Initialize
 (async function() {
   await loadLayout();
   buildSidebar();
   window.addEventListener('hashchange', router);
-  window.addEventListener('load', ()=>{ router(); });
+  window.addEventListener('load', () => {
+    router();
+  });
   router(); // Load initial page
 })();
 </script>
 </body>
 </html>
-
