@@ -1288,14 +1288,17 @@ async function discoverContentStructure() {
       docs: ['index', 'installation', 'usage']
     };
     
-    // Try dynamic discovery first by attempting to load a manifest
-    // If server has a content manifest, use it. Otherwise use fallback.
+    // Try dynamic discovery first by attempting to load manifest.md
     try {
-      const manifestRes = await fetch('content/.manifest.json');
+      const manifestRes = await fetch('content/manifest.md');
       if (manifestRes.ok) {
-        CONTENT_STRUCTURE = await manifestRes.json();
-        console.log('✓ Dynamic content discovery: manifest loaded');
-        return;
+        const manifestText = await manifestRes.text();
+        const structure = parseManifestMarkdown(manifestText);
+        if (structure && Object.keys(structure).length > 0) {
+          CONTENT_STRUCTURE = structure;
+          console.log('✓ Dynamic content discovery: manifest loaded');
+          return;
+        }
       }
     } catch (e) {
       // Manifest not available, continue with fallback
@@ -1310,6 +1313,45 @@ async function discoverContentStructure() {
       home: ['index'],
       docs: ['index']
     };
+  }
+}
+
+// Parse manifest.md to extract structure
+function parseManifestMarkdown(text) {
+  try {
+    const structure = {};
+    const lines = text.split('\n');
+    let currentSection = null;
+    let inPages = false;
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      if (trimmed.endsWith(':') && !trimmed.includes('pages:') && currentSection === null) {
+        const sectionName = trimmed.slice(0, -1).toLowerCase();
+        if (sectionName !== 'sections' && sectionName !== 'section' && !sectionName.includes('_')) {
+          currentSection = sectionName;
+          structure[currentSection] = [];
+          inPages = false;
+        }
+      }
+      
+      if (trimmed.startsWith('pages:') || (trimmed.startsWith('- ') && currentSection)) {
+        inPages = true;
+      }
+      
+      if (inPages && trimmed.startsWith('- ') && currentSection) {
+        const pageName = trimmed.slice(2).trim();
+        if (pageName && !pageName.includes(':')) {
+          structure[currentSection].push(pageName);
+        }
+      }
+    }
+    
+    return structure;
+  } catch (e) {
+    console.warn('Could not parse manifest.md:', e);
+    return {};
   }
 }
 
@@ -1363,13 +1405,66 @@ let THEME_CONFIG = null;
 // Load theme colors from config file
 async function loadThemeConfig() {
   try {
-    const response = await fetch('content/theme.json');
+    const response = await fetch('content/theme.md');
     if (response.ok) {
-      THEME_CONFIG = await response.json();
+      const themeText = await response.text();
+      THEME_CONFIG = parseThemeMarkdown(themeText);
       applyThemeColors();
     }
   } catch (error) {
     console.warn('Could not load theme config, using defaults:', error);
+  }
+}
+
+// Parse theme.md to extract color configuration
+function parseThemeMarkdown(text) {
+  try {
+    const config = { light: {}, dark: {} };
+    const lines = text.split('\n');
+    let currentMode = null;
+    
+    for (const line of lines) {
+      const trimmed = line.trim();
+      
+      if (trimmed.includes('light_mode:')) currentMode = 'light';
+      if (trimmed.includes('dark_mode:')) currentMode = 'dark';
+      
+      if (trimmed.includes(':') && currentMode && !trimmed.endsWith(':')) {
+        const match = trimmed.match(/(.+?):\s*[\"']?(.+?)[\"']?\s*(?:#|$)/);
+        if (match && match[1] && match[2]) {
+          const key = match[1].trim();
+          let value = match[2].trim();
+          
+          if (value.includes('#')) {
+            value = value.split('#')[0].trim();
+          }
+          
+          let cssKey = '--' + key.replace(/_/g, '-');
+          if (key === 'background') cssKey = '--bg';
+          if (key === 'card_background') cssKey = '--card';
+          if (key === 'text_color') cssKey = '--text';
+          if (key === 'secondary_text') cssKey = '--text-secondary';
+          if (key === 'accent_color') cssKey = '--accent';
+          if (key === 'accent_hover') cssKey = '--accent-hover';
+          if (key === 'navigation_bg') cssKey = '--nav';
+          if (key === 'border_color') cssKey = '--border';
+          if (key === 'border_light') cssKey = '--border-light';
+          if (key === 'shadow') cssKey = '--shadow';
+          if (key === 'shadow_medium') cssKey = '--shadow-md';
+          if (key === 'shadow_large') cssKey = '--shadow-lg';
+          if (key === 'corner_radius') cssKey = '--radius';
+          if (key === 'small_radius') cssKey = '--radius-sm';
+          if (key === 'transition_speed') cssKey = '--transition';
+          
+          config[currentMode][cssKey] = value;
+        }
+      }
+    }
+    
+    return config;
+  } catch (e) {
+    console.warn('Could not parse theme.md:', e);
+    return null;
   }
 }
 

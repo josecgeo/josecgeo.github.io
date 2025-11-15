@@ -1,531 +1,344 @@
-# DocsHub Logic Documentation
+# DocsHub - Business Logic & User Guide
 
-This document describes the complete logic and architecture of the DocsHub static site generator in a human-readable YAML format for AI and human understanding.
+This document explains how DocsHub works from a business perspective, not the technical implementation.
 
-## System Overview
+---
 
-```yaml
-system:
-  name: "DocsHub - Markdown-Powered Single Page Application (SPA)"
-  type: "Static Site Generator"
-  technology_stack:
-    - "HTML5"
-    - "CSS3 (with CSS Variables for theming)"
-    - "Vanilla JavaScript"
-    - "Markdown (via marked.js library)"
-  purpose: "Convert markdown files from a content directory into a professional, responsive documentation website"
-  target_users: ["Technical writers", "Documentation teams", "Project maintainers"]
+## What is DocsHub?
 
-core_principles:
-  - "No build process required"
-  - "All content in markdown files"
-  - "Configuration via YAML frontmatter"
-  - "Fully responsive and accessible"
-  - "Dark mode support with theme customization"
-  - "Full-text search capability"
-  - "Client-side routing with hash-based URLs"
+DocsHub is a professional documentation and content management system. It's designed to make it easy for anyone to create, organize, and publish documentation without requiring technical knowledge.
+
+**Key Benefits:**
+- No server or database needed
+- All content is stored as simple text files
+- Automatically creates a professional-looking website
+- Works on any device - desktop, tablet, or mobile
+- Light and dark mode options
+- Powerful search functionality
+
+---
+
+## How Content is Organized
+
+### Sections
+Your content is organized into **sections** (like folders). Each section contains multiple pages.
+
+**Default Sections:**
+- **Home** - Your main landing page
+- **About** - Team and project information
+- **Blog** - Articles and news posts
+- **Docs** - Technical documentation and guides
+
+### Pages
+Each section contains one or more **pages**. For example:
+- Home section has: Home Page
+- Blog section has: Blog Index, First Post, Second Post
+- Docs section has: Installation Guide, Usage Guide
+
+### Navigation
+- **Top Menu** - Shows main sections (Home, About, Blog, Docs)
+- **Sidebar** - Shows all pages within each section
+- **Breadcrumbs** - Shows your current location (e.g., Docs > Installation)
+- **Search** - Find any content instantly
+
+---
+
+## Managing Your Content
+
+### Adding a New Page
+
+**Step 1:** Create a text file (`.md` format) in the appropriate section folder
+**Step 2:** Write your content using simple Markdown formatting
+**Step 3:** Update `manifest.md` to list your new page
+**Step 4:** Refresh your browser - that's it!
+
+Example: To add a new blog post
+1. Create file: `content/blog/my-new-post.md`
+2. Write your content
+3. Add to `manifest.md` under blog section
+4. Your post appears in the blog menu
+
+### Creating a New Section
+
+**Step 1:** Create a new folder in `content/`
+**Step 2:** Add an `index.md` file to that folder
+**Step 3:** Add the section to `manifest.md`
+**Step 4:** Customize the menu position and title in `index.md`
+
+### Menu Customization
+
+In any section's `index.md` file, you can control:
+- **Menu Position** - Which order sections appear (1 = first, 2 = second)
+- **Menu Title** - What text shows in the menu
+- **Hidden** - Whether to hide this section from the menu
+
+Example `index.md` frontmatter:
 ```
-
-## Project Structure
-
-```yaml
-project_structure:
-  root_files:
-    - "index.html": "Main SPA entry point with all HTML, CSS, and JavaScript"
-    - "logic.md": "This documentation file"
-  
-  content_directory: "content/"
-    structure:
-      "favicon.svg": "Website favicon (32x32 SVG)"
-      "_config.md": 
-        description: "Site configuration with frontmatter"
-        frontmatter_keys:
-          - "site_name": "Name displayed in header"
-          - "tagline": "Subtitle displayed next to site name"
-          - "window_title": "Title shown in browser tab (optional)"
-      
-      "_header.md":
-        description: "Optional header content (not currently displayed, but loaded)"
-        usage: "Can be extended for custom header content"
-      
-      "_footer.md":
-        description: "Footer content displayed at bottom of every page"
-        format: "Markdown (converted to HTML)"
-      
-      "theme.json":
-        description: "Color theme configuration"
-        structure:
-          light:
-            bg, card, text, accent, borders, shadows, etc.
-          dark:
-            bg, card, text, accent, borders, shadows, etc.
-      
-      "logo.svg":
-        description: "Site logo displayed in header (optional)"
-      
-      "folders/":
-        pattern: "One folder per main section"
-        examples: ["home/", "about/", "blog/", "docs/"]
-        contents:
-          - "index.md": "Overview page for the section (appears in top menu and sidebar)"
-          - "other-files.md": "Additional pages in the section"
-```
-
-## Content Structure
-
-```yaml
-content_organization:
-  dynamic_discovery:
-    method: "Attempts to load content/.manifest.json for dynamic discovery"
-    fallback: "Uses pre-tested fallback structure if manifest unavailable"
-    benefits:
-      - "Supports up to 8 levels of nested folders"
-      - "No rebuild needed when adding new content"
-      - "Graceful degradation if discovery fails"
-    manifest_format: "JSON file mapping folders to file arrays"
-    example_manifest: |
-      {
-        "home": ["index"],
-        "docs": ["index", "installation", "usage"],
-        "blog": ["index", "first-post", "second-post"]
-      }
-  
-  folder_system:
-    structure: "Up to 8 levels of nested folders supported"
-    first_level_folders:
-      display_in: "Horizontal top menu"
-      linked_by: "Folder index.md file"
-      icon_mapping:
-        home: "🏠"
-        about: "ℹ️"
-        blog: "📝"
-        docs: "📚"
-      default_icon: "📁"
-    
-    subfolder_files:
-      display_in: "Sidebar (expandable/collapsible)"
-      structure: "Nested under parent folder"
-  
-  frontmatter_config:
-    location: "At top of .md files between --- delimiters"
-    parsing: "YAML format (key: value pairs)"
-    first_level_index_pages:
-      - "menu_position": "Integer for sorting in top menu (lower numbers first)"
-      - "menu_title": "Custom title for top menu link (defaults to folder name)"
-      - "menu_hidden": "true/false to hide from menu"
-    
-    examples:
-      home_index: |
-        ---
-        menu_position: 1
-        menu_title: Home
-        ---
-      blog_index: |
-        ---
-        menu_position: 2
-        menu_title: Articles
-        menu_hidden: false
-        ---
-```
-
-## Rendering Pipeline
-
-```yaml
-page_load_sequence:
-  1_initialization:
-    - "Parse frontmatter from _config.md"
-    - "Load theme colors from theme.json"
-    - "Load and display logo.svg if present"
-    - "Build sidebar navigation structure"
-    - "Build top horizontal menu"
-    - "Set initial page title from config"
-  
-  2_route_handling:
-    url_format: "#/folder/filename (hash-based routing)"
-    default_route: "#/home/index"
-    resolution_process:
-      1: "Extract folder and filename from URL hash"
-      2: "Verify folder exists in CONTENT_STRUCTURE"
-      3: "Verify filename exists in folder"
-      4: "Load markdown file via fetch()"
-      5: "Cache content for performance"
-      6: "Show 404 if not found"
-  
-  3_content_rendering:
-    steps:
-      1: "Fetch markdown file from content/{folder}/{file}.md"
-      2: "Check CONTENT_CACHE to avoid re-fetching"
-      3: "Parse with marked.js library"
-      4: "Apply markdown rendering with GitHub Flavored Markdown (GFM)"
-      5: "Insert rendered HTML into #content card"
-      6: "Generate breadcrumb navigation"
-      7: "Update sidebar active state"
-      8: "Update top menu active state"
-      9: "Scroll to top smoothly"
-```
-
-## Navigation System
-
-```yaml
-navigation_components:
-  
-  1_header:
-    location: "Top sticky bar"
-    elements:
-      - hamburger_menu_button: "Toggles sidebar on mobile"
-      - logo_and_title: "Site name with gradient effect"
-      - search_bar: "Full-text search (desktop only)"
-      - theme_toggle: "Switch between light/dark mode"
-  
-  2_top_menu:
-    behavior: "Horizontal navigation bar below header"
-    contents: "First-level folder links from content/"
-    sorting: "By menu_position frontmatter in index.md"
-    visibility: "Hidden from top menu if menu_hidden: true"
-    responsive: "Wraps on smaller screens"
-  
-  3_sidebar:
-    behavior: "Collapsible folder tree (hidden on mobile, overlay on medium screens)"
-    structure:
-      - "Folder headers (clickable to index.md)"
-      - "Expandable/collapsible file lists per folder"
-      - "File links within each folder"
-    mobile_behavior:
-      - "Fixed overlay triggered by hamburger button"
-      - "Close button in top right"
-      - "Semi-transparent backdrop"
-      - "Closes automatically when link clicked"
-    desktop_behavior:
-      - "Sticky positioned beside main content"
-      - "Scrollable if content exceeds viewport"
-  
-  4_breadcrumbs:
-    display_condition: "Only on non-index pages"
-    format: "Folder / File path"
-    links: "Clickable back navigation"
-    styling: "Small pill-shaped elements with hover effects"
-
-  5_search:
-    locations: 
-      - "Header (desktop > 768px)"
-      - "Sidebar (mobile on-demand)"
-    functionality:
-      - "Real-time full-text search"
-      - "Searches filename + content"
-      - "Shows excerpt of matching text"
-      - "Results clickable to jump to page"
-      - "Debounced (200ms) for performance"
-    keyboard_shortcuts:
-      - "Ctrl/Cmd + K: Focus search"
-      - "Escape: Close search results"
-```
-
-## Search Implementation
-
-```yaml
-search_system:
-  trigger:
-    keyboard: "Real-time input event listener"
-    debounce_delay: "200ms to avoid excessive processing"
-  
-  search_scope:
-    searches: "Filename + entire markdown content"
-    case_sensitivity: "Case-insensitive (converted to lowercase)"
-    pattern_matching: "Simple substring matching"
-  
-  results_display:
-    format:
-      title: "Folder / Filename"
-      excerpt: "120 character snippet around match (60 chars before/after)"
-      context: "Ellipsis (...) added if truncated"
-    sorting: "Order found during content iteration"
-    max_visible: "Scrollable dropdown (400px max-height)"
-    empty_state: "Shows 'No results found' message"
-  
-  interaction:
-    click: "Navigate to matching page"
-    keyboard: "Enter on focused result"
-    close: "Click outside, press Escape, or click on result"
-```
-
-## Theming System
-
-```yaml
-theme_management:
-  
-  light_mode:
-    default: true
-    colors_affected:
-      - "Background (--bg)"
-      - "Cards (--card)"
-      - "Text (--text, --text-secondary)"
-      - "Accents (--accent, --accent-hover)"
-      - "Navigation (--nav)"
-      - "Borders (--border, --border-light)"
-      - "Shadows (--shadow, --shadow-md, --shadow-lg)"
-  
-  dark_mode:
-    trigger: "Click theme toggle button"
-    css_mechanism: "[data-theme='dark'] attribute on html element"
-    storage: "Persisted in localStorage as 'spa-theme'"
-    icon_change: "🌙 (dark) ↔ ☀️ (light)"
-  
-  custom_theme_colors:
-    source: "content/theme.json"
-    structure:
-      light:
-        "--bg": "#fafbfc"
-        "--card": "#ffffff"
-        "--text": "#111827"
-        "--accent": "#3b82f6"
-        # ... etc
-      dark:
-        "--bg": "#0f172a"
-        "--card": "#1e293b"
-        "--text": "#f1f5f9"
-        "--accent": "#60a5fa"
-        # ... etc
-    application:
-      method: "CSS custom properties via root.style.setProperty()"
-      timing: "Applied on theme toggle"
-      fallback: "Uses default CSS variables if theme.json not found"
-```
-
-## Responsive Design
-
-```yaml
-responsive_breakpoints:
-  
-  desktop:
-    width: "> 1024px"
-    layout: "Two-column (sidebar + content)"
-    sidebar: "Sticky, always visible"
-    search: "Visible in header"
-    menu: "All items visible"
-  
-  tablet:
-    width: "768px - 1024px"
-    layout: "Single column with drawer sidebar"
-    sidebar: "Fixed overlay (hidden by default, toggle shows)"
-    search: "Hidden from header, available in sidebar"
-    menu: "Wrapped, full-width navigation"
-  
-  mobile:
-    width: "< 768px"
-    layout: "Single column"
-    sidebar: "Full-height overlay with semi-transparent backdrop"
-    search: "Only in sidebar when open"
-    header: "Reduced padding and font sizes"
-    content: "Reduced padding"
-    menu: "Stacked, reduced font size"
-  
-  small_mobile:
-    width: "< 480px"
-    header: "Minimal spacing, smaller icons (24px)"
-    buttons: "Smaller padding and font"
-    breadcrumbs: "Reduced font size (0.75rem)"
-    spacing: "Aggressive padding reduction throughout"
-```
-
-## Caching Strategy
-
-```yaml
-content_caching:
-  mechanism: "CONTENT_CACHE object in JavaScript"
-  key_format: "folder/filename"
-  populate_on: "First request to fetch markdown file"
-  benefit: "Eliminates duplicate network requests"
-  ttl: "Session-based (cleared on page refresh)"
-  scope: "Prevents re-fetching of already loaded content"
-```
-
-## Event Handling
-
-```yaml
-event_listeners:
-  
-  navigation:
-    - "hashchange: Triggered when URL hash changes"
-    - "click on sidebar links: Navigate and close sidebar (mobile)"
-    - "click on menu links: Update active states"
-  
-  ui_interactions:
-    - "toggle-sidebar button: Show/hide sidebar"
-    - "toggle-theme button: Switch light/dark mode"
-    - "Escape key: Close sidebar on mobile"
-    - "Ctrl/Cmd + K: Focus search input"
-  
-  responsive:
-    - "resize: Rebuild navigation on breakpoint change"
-      debounce: "250ms to prevent excessive recalculation"
-      actions:
-        - "Close sidebar on desktop transition"
-        - "Rebuild sidebar structure"
-        - "Update menu styles"
-  
-  search:
-    - "input event: Debounced search execution"
-    - "click outside: Close results"
-    - "click result: Navigate and close"
-```
-
-## Performance Optimizations
-
-```yaml
-optimizations:
-  
-  caching:
-    - "Content cached after first fetch"
-    - "Theme colors cached in memory"
-    - "Menu config cached after load"
-  
-  rendering:
-    - "CSS animations use GPU acceleration (transform, opacity)"
-    - "Debounced search (200ms) and resize (250ms)"
-    - "Smooth scroll behavior for navigation"
-  
-  critical_rendering_path:
-    1: "Load HTML (inline CSS and JS)"
-    2: "Load Google Fonts"
-    3: "Load marked.js from CDN"
-    4: "Execute initialization"
-    5: "Fetch content on first route"
-```
-
-## Accessibility Features
-
-```yaml
-accessibility:
-  
-  semantic_html:
-    - "Proper heading hierarchy (h1 > h2 > h3, etc.)"
-    - "Semantic tags: <header>, <nav>, <main>, <footer>, <aside>"
-    - "Links have descriptive text"
-  
-  aria_attributes:
-    - "aria-label on icon buttons"
-    - "role attributes where needed"
-    - "aria-current for active navigation"
-  
-  keyboard_navigation:
-    - "Tab through interactive elements"
-    - "Enter/Space to activate buttons"
-    - "Escape to close modals/overlays"
-    - "Ctrl/Cmd + K to focus search"
-  
-  visual_accessibility:
-    - "Color contrast meets WCAG AA standards"
-    - "Focus states clearly visible"
-    - "Sufficient spacing between touch targets (minimum 44x44px)"
-```
-
-## Configuration Reference
-
-```yaml
-configuration_files:
-  
-  _config.md:
-    frontmatter:
-      site_name: "DocsHub"                              # Header text
-      tagline: "Your Documentation Hub"                 # Subtitle
-      window_title: "DocsHub - Your Documentation Hub"  # Browser tab title
-  
-  theme.json:
-    structure: "Two main sections: light and dark"
-    colors: "CSS variable names with hex values"
-    customizable_variables:
-      - "--bg": "Main background"
-      - "--card": "Content card background"
-      - "--text": "Primary text color"
-      - "--accent": "Link and highlight color"
-      - "--border": "Border/divider color"
-      - "--shadow": "Elevation shadow"
-  
-  folder_index_files:
-    frontmatter_options:
-      menu_position: "Integer (lower appears first)"
-      menu_title: "Custom display name in menu"
-      menu_hidden: "true/false to hide from navigation"
-```
-
-## Error Handling
-
-```yaml
-error_handling:
-  
-  file_not_found:
-    trigger: "Requested markdown file doesn't exist"
-    display: "404 - Page Not Found error message"
-    action: "Shows link back to home"
-  
-  fetch_failures:
-    trigger: "Network error or file fetch fails"
-    display: "Error message in content area"
-    action: "Logged to console for debugging"
-  
-  malformed_markdown:
-    trigger: "Invalid markdown syntax"
-    handling: "marked.js processes gracefully"
-    display: "Best-effort rendering"
-  
-  missing_config:
-    trigger: "_config.md, _header.md, or _footer.md not found"
-    handling: "Uses default values or skips loading"
-    fallback: "Site still functions with defaults"
-```
-
-## Maintenance and Extensibility
-
-```yaml
-common_tasks:
-  
-  add_new_page:
-    steps:
-      - "Create .md file in appropriate content folder"
-      - "Update content/.manifest.json with new file path (optional but recommended)"
-      - "Content automatically discovered on next load"
-      - "No restart or rebuild needed"
-  
-  customize_colors:
-    method: "Edit content/theme.json"
-    format: "Light and dark color schemes"
-    immediate_effect: "Applies on next page load"
-  
-  change_site_metadata:
-    method: "Edit content/_config.md frontmatter"
-    options:
-      - "site_name"
-      - "tagline"
-      - "window_title"
-  
-  add_footer_content:
-    method: "Edit content/_footer.md"
-    format: "Markdown (converted to HTML)"
-    updates_on: "Automatic on next load"
-  
-  add_custom_logo:
-    method: "Place logo.svg in content/ folder"
-    format: "SVG file (32x32 pixels)"
-    location: "Displayed in header next to title"
-  
-  update_favicon:
-    method: "Replace content/favicon.svg"
-    format: "SVG or other image format (32x32 recommended)"
-    location: "Loaded from content/ directory"
-    reference: "Linked in HTML <head> with correct path"
-
-future_enhancements:
-  - "Full-text search pre-processing and indexing"
-  - "Table of contents generation from headers"
-  - "Multi-language support"
-  - "Analytics integration"
-  - "Comments/discussion system"
-  - "Version history/git integration"
-  - "Advanced markdown features (tabs, collapsible sections)"
+---
+menu_position: 2
+menu_title: Articles
+menu_hidden: false
+---
 ```
 
 ---
 
-**Document Version**: 1.0  
+## Configuration Files
+
+### `_config.md` - Site Settings
+Controls overall site appearance and branding:
+- **Site Name** - Displayed in header (e.g., "DocsHub")
+- **Tagline** - Subtitle next to site name
+- **Window Title** - Text shown in browser tab
+
+### `theme.md` - Colors & Appearance
+Define colors for light and dark modes:
+- Background colors
+- Text colors
+- Link/accent colors
+- Button colors
+
+Make changes and see them live immediately!
+
+### `manifest.md` - Navigation Structure
+Defines what sections and pages exist on your site:
+- Which pages are searchable
+- Which pages appear in menus
+- Section organization
+
+### `_header.md` - Header Content
+Custom content displayed at the top (optional)
+
+### `_footer.md` - Footer Content
+Copyright info, links, and other footer content
+
+### `favicon.svg` - Site Icon
+The small icon shown in the browser tab
+
+### `logo.svg` - Site Logo
+Your company/project logo displayed in the header
+
+---
+
+## Content Features
+
+### Markdown Formatting
+
+Write your pages using **Markdown** - a simple, readable text format:
+
+```
+# Main Heading
+## Subheading
+### Sub-subheading
+
+**Bold text**
+*Italic text*
+
+- Bullet list
+- Another item
+
+1. Numbered list
+2. Another item
+
+[Link text](https://example.com)
+
+> Quote or note
+```
+
+### Page Metadata (Frontmatter)
+
+At the top of each page, you can add metadata:
+
+```
+---
+menu_position: 1
+menu_title: Home
+menu_hidden: false
+---
+
+# Page Content Starts Here
+```
+
+---
+
+## Search & Discovery
+
+### How Search Works
+- Searches page titles and content
+- Real-time results as you type
+- Shows preview of matching content
+- Click to navigate to page
+
+### Keyboard Shortcuts
+- **Ctrl+K** (or **Cmd+K** on Mac) - Focus search
+- **Escape** - Close search results
+
+### What Gets Indexed
+- All pages marked as searchable in `manifest.md`
+- Page titles and content
+- File names
+
+---
+
+## Visual Appearance
+
+### Responsive Design
+- **Desktop** - Full sidebar navigation
+- **Tablet** - Sidebar in dropdown drawer
+- **Mobile** - Touch-friendly layout
+- **Small Mobile** - Minimal spacing, optimized for small screens
+
+### Dark Mode
+- Toggle button in top right
+- Remembers your preference
+- All colors automatically adjusted
+
+### Theme Customization
+Edit `theme.md` to change colors:
+1. Find the color you want to change
+2. Replace the hex color value
+3. Save the file
+4. Refresh your browser
+
+Example: Change accent color from blue to green
+```yaml
+accent_color: "#22c55e"  # Changed from #3b82f6
+```
+
+---
+
+## Site Structure
+
+```
+content/
+├── favicon.svg         # Browser tab icon
+├── logo.svg            # Header logo
+├── _config.md          # Site configuration
+├── _header.md          # Header content
+├── _footer.md          # Footer content
+├── theme.md            # Colors and appearance
+├── manifest.md         # Navigation and structure
+├── home/               # Home section
+│   └── index.md
+├── about/              # About section
+│   ├── index.md
+│   └── team.md
+├── blog/               # Blog section
+│   ├── index.md
+│   ├── first-post.md
+│   └── second-post.md
+└── docs/               # Documentation section
+    ├── index.md
+    ├── installation.md
+    └── usage.md
+```
+
+---
+
+## Common Tasks
+
+### Update Site Name
+Edit `_config.md`:
+```yaml
+site_name: "My New Company Name"
+```
+
+### Add a New Blog Post
+1. Create: `content/blog/post-title.md`
+2. Add to `manifest.md` under blog pages
+3. Refresh browser
+
+### Change Color Scheme
+Edit `theme.md`:
+- Light mode colors for daytime use
+- Dark mode colors for nighttime use
+
+### Hide a Section from Menu
+In that section's `index.md`:
+```yaml
+menu_hidden: true
+```
+
+### Reorder Menu Items
+Change `menu_position` numbers:
+- Lower numbers appear first
+- 1, 2, 3... = first, second, third, etc.
+
+### Update Footer
+Edit `_footer.md` with your copyright and contact info
+
+---
+
+## Best Practices
+
+✅ **Do:**
+- Use descriptive page titles
+- Organize related content in sections
+- Update the manifest when adding pages
+- Keep file names lowercase and simple
+- Use clear, concise writing
+
+❌ **Don't:**
+- Use special characters in file names
+- Leave pages unorganized
+- Forget to update manifest.md
+- Use complicated folder structures
+- Mix content types in one section
+
+---
+
+## Frequently Asked Questions
+
+**Q: Do I need to rebuild the site after making changes?**
+A: No! Just refresh your browser. Changes are reflected immediately.
+
+**Q: What if I accidentally delete a page?**
+A: It will show a 404 error. Add the file back and refresh.
+
+**Q: Can I have more than 4 sections?**
+A: Yes! Create a new folder in `content/` and add it to `manifest.md`.
+
+**Q: Is there a limit to how many pages I can have?**
+A: No, you can have as many pages and sections as you need.
+
+**Q: How do I change fonts?**
+A: Font changes require editing the HTML file (technical change).
+
+**Q: Can I schedule content to publish at a specific time?**
+A: Not built-in, but you can manually add/remove pages as needed.
+
+**Q: How do I add images?**
+A: Host them externally and link in Markdown: `![alt text](https://example.com/image.jpg)`
+
+**Q: Can multiple people edit content?**
+A: Yes, with version control (Git), people can collaborate on content.
+
+---
+
+## Support & Troubleshooting
+
+**Page Not Showing in Menu?**
+- Check if it's in `manifest.md`
+- Verify `menu_hidden` is not set to true
+- Check spelling of file names
+
+**Colors Not Changing?**
+- Edit `theme.md` and save
+- Hard-refresh your browser (Ctrl+Shift+R)
+- Check hex color format is valid
+
+**Search Not Finding My Content?**
+- Verify page is in `manifest.md`
+- Check `searchable: true` setting
+- Wait a moment for index to load
+
+**Mobile Menu Not Working?**
+- Try refreshing the page
+- Clear browser cache
+- Try a different browser
+
+---
+
+**Version**: 1.0  
 **Last Updated**: November 2025  
-**System**: DocsHub SPA
+**For**: DocsHub Users
