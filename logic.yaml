@@ -80,16 +80,16 @@ project_structure:
   root_folder:
     index.html:
       description: "Entry point for the SPA. Handles logic for rendering content, menus, routing, search, and themes."
-        responsibilities:
-        - "Loads config.yaml, theme.yaml from the content/ directory."
-        - "Recursively scans content/ to generate or fetch navigation structures."
-        - "Parses Markdown using marked.js and sanitizes rendered HTML to prevent XSS."
-        - "Processes Frontmatter metadata: title, slug, date, tags, menu (true|false), menu_order, include_in_sitemap, draft."
-        - "Generates menu, breadcrumbs, search index, footer sitemap."
-        - "Initializes theme based on config.yaml."
-        - "Provides hash-based routing (#/path/page)."
-        - "Handles keyboard shortcuts (accessible with focus management) for search and theme toggle."
-        - "Supports collapsible folder sidebar and respects system theme preference."
+      responsibilities:
+      - "Loads config.yaml, theme.yaml from the content/ directory."
+      - "Recursively scans content/ to generate or fetch navigation structures."
+      - "Parses Markdown using marked.js and sanitizes rendered HTML to prevent XSS."
+      - "Processes Frontmatter metadata: title, slug, date, tags, menu (true|false), menu_order, include_in_sitemap, draft."
+      - "Generates menu, breadcrumbs, search index, footer sitemap."
+      - "Initializes theme based on config.yaml."
+      - "Provides hash-based routing (#/path/page)."
+      - "Handles keyboard shortcuts (accessible with focus management) for search and theme toggle."
+      - "Supports collapsible folder sidebar and respects system theme preference."
 
   content:
     description: "Directory where all Markdown and YAML files reside."
