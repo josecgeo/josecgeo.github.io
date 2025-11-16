@@ -1,0 +1,14 @@
+site_name: "DocsHub"
+window_title: "DocsHub - Documentation Made Simple"
+slogan: "Documentation made simple"
+favicon: "/assets/favicon.svg"
+logo: "/assets/logo.svg"
+default_theme: "light"
+available_themes:
+  - "light"
+  - "dark"
+  - "blue"
+  - "high_contrast"
+footer:
+  show_sitemap: true
+  copyright: "© 2025 DocsHub. Built with simplicity in mind."

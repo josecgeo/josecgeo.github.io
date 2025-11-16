@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DocsHub</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #ffffff;
+      --text: #1a1a1a;
+      --sidebar: #f5f5f5;
+      --accent: #0070f3;
+      --border: #e5e5e5;
+    }
+
+    body.dark {
+      --bg: #111111;
+      --text: #eeeeee;
+      --sidebar: #1d1d1d;
+      --accent: #4dabf7;
+      --border: #333333;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: row;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 20px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .sidebar-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--accent);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .sidebar nav ul {
+      list-style: none;
+    }
+
+    .sidebar nav li {
+      margin: 8px 0;
+    }
+
+    .sidebar nav a {
+      color: var(--text);
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      display: block;
+      transition: background 0.2s;
+    }
+
+    .sidebar nav a:hover,
+    .sidebar nav a.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    .sidebar nav .submenu {
+      margin-left: 16px;
+      display: none;
+    }
+
+    .sidebar nav .submenu.open {
+      display: block;
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background: var(--sidebar);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      flex: 1;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-box {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      border-radius: 4px;
+      width: 200px;
+      font-size: 14px;
+    }
+
+    .search-box:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.1);
+    }
+
+    button {
+      padding: 8px 12px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: opacity 0.2s;
+    }
+
+    button:hover {
+      opacity: 0.8;
+    }
+
+    .content {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .breadcrumbs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .breadcrumbs a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .breadcrumbs a:hover {
+      text-decoration: underline;
+    }
+
+    .breadcrumbs span {
+      color: var(--text);
+      margin: 0 4px;
+    }
+
+    .content h1 {
+      font-size: 32px;
+      margin: 24px 0 16px 0;
+    }
+
+    .content h2 {
+      font-size: 24px;
+      margin: 20px 0 12px 0;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 8px;
+    }
+
+    .content h3 {
+      font-size: 20px;
+      margin: 16px 0 8px 0;
+    }
+
+    .content p {
+      margin: 12px 0;
+    }
+
+    .content code {
+      background: var(--sidebar);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: "Monaco", "Courier New", monospace;
+      font-size: 14px;
+    }
+
+    .content pre {
+      background: var(--sidebar);
+      padding: 12px;
+      border-radius: 4px;
+      overflow-x: auto;
+      margin: 12px 0;
+    }
+
+    .content pre code {
+      background: none;
+      padding: 0;
+    }
+
+    .content ul, .content ol {
+      margin-left: 20px;
+      margin: 12px 0;
+    }
+
+    .content li {
+      margin: 6px 0;
+    }
+
+    .content blockquote {
+      border-left: 4px solid var(--accent);
+      padding-left: 12px;
+      margin: 12px 0;
+      font-style: italic;
+      color: #666;
+    }
+
+    .content a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .content a:hover {
+      text-decoration: underline;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 60px;
+      right: 24px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      width: 300px;
+      max-height: 400px;
+      overflow-y: auto;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+    }
+
+    .search-results.open {
+      display: block;
+    }
+
+    .search-result-item {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .search-result-item:hover {
+      background: var(--sidebar);
+    }
+
+    .search-result-item .title {
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    .search-result-item .snippet {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .footer {
+      background: var(--sidebar);
+      border-top: 1px solid var(--border);
+      padding: 20px 24px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .footer-sitemap {
+      margin-bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-sitemap a {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .footer-sitemap a:hover {
+      text-decoration: underline;
+    }
+
+    .error-message {
+      background: #fee;
+      border: 1px solid #fcc;
+      color: #c00;
+      padding: 12px;
+      border-radius: 4px;
+      margin: 12px 0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 24px;
+      color: #999;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 200px;
+      }
+
+      .header {
+        flex-wrap: wrap;
+      }
+
+      .search-box {
+        width: 100%;
+      }
+
+      .search-results {
+        position: fixed;
+        width: 90%;
+        right: 5%;
+        left: 5%;
+      }
+    }
+
+    .tag {
+      display: inline-block;
+      background: var(--accent);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 3px;
+      font-size: 12px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .page-meta {
+      font-size: 12px;
+      color: #666;
+      margin: 16px 0;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">D</div>
+        <span id="site-name">DocsHub</span>
+      </div>
+      <nav id="menu"></nav>
+    </aside>
+
+    <div class="main-content">
+      <header class="header">
+        <h1 id="page-title">Welcome</h1>
+        <div class="header-controls">
+          <input 
+            type="text" 
+            id="search" 
+            class="search-box" 
+            placeholder="Search..."
+            aria-label="Search documentation"
+          >
+          <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+      </header>
+
+      <div class="content">
+        <div id="breadcrumbs" class="breadcrumbs"></div>
+        <div id="page-content" class="loading">Loading...</div>
+        <div id="page-tags" class="page-meta"></div>
+      </div>
+
+      <footer class="footer">
+        <div id="footer-sitemap" class="footer-sitemap"></div>
+        <div id="copyright"></div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    class DocsHub {
+      constructor() {
+        this.config = {};
+        this.theme = {};
+        this.manifest = { pages: [] };
+        this.currentPage = null;
+        this.searchIndex = [];
+        this.init();
+      }
+
+      async init() {
+        try {
+          // Load all YAML files
+          await Promise.all([
+            this.loadConfig(),
+            this.loadTheme(),
+            this.loadManifest()
+          ]);
+
+          this.initializeTheme();
+          this.buildMenu();
+          this.buildFooter();
+          this.setupSearch();
+          this.setupRouting();
+          this.setupEventListeners();
+
+          // Load initial page
+          this.loadPage();
+        } catch (error) {
+          console.error('Initialization error:', error);
+          this.showError('Failed to load documentation site.');
+        }
+      }
+
+      async loadYAML(path) {
+        const response = await fetch(path);
+        if (!response.ok) throw new Error(`Failed to load ${path}`);
+        const text = await response.text();
+        return jsyaml.load(text);
+      }
+
+      async loadConfig() {
+        this.config = await this.loadYAML('content/config.yaml');
+        document.title = this.config.window_title || 'DocsHub';
+        document.getElementById('site-name').textContent = this.config.site_name;
+        document.getElementById('page-title').textContent = this.config.site_name;
+      }
+
+      async loadTheme() {
+        this.theme = await this.loadYAML('content/theme.yaml');
+      }
+
+      async loadManifest() {
+        this.manifest = await this.loadYAML('content/manifest.yaml');
+        this.buildSearchIndex();
+      }
+
+      initializeTheme() {
+        const isDark = localStorage.getItem('theme') === 'dark' ||
+          (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (isDark) {
+          document.body.classList.add('dark');
+        }
+
+        this.applyTheme();
+      }
+
+      applyTheme() {
+        const isDark = document.body.classList.contains('dark');
+        const themeName = isDark ? 'dark' : 'light';
+        const themeColors = this.theme[themeName];
+
+        if (themeColors?.colors) {
+          Object.entries(themeColors.colors).forEach(([key, value]) => {
+            document.documentElement.style.setProperty(`--${key}`, value);
+          });
+        }
+      }
+
+      buildMenu() {
+        const menu = document.getElementById('menu');
+        menu.innerHTML = '';
+
+        const grouped = {};
+        this.manifest.pages.forEach(page => {
+          if (!page.include_in_menu) return;
+          const parts = page.slug.split('/');
+          const parent = parts.length > 1 ? parts[0] : 'root';
+
+          if (!grouped[parent]) grouped[parent] = [];
+          grouped[parent].push(page);
+        });
+
+        // Sort each group by menu_order
+        Object.values(grouped).forEach(pages => {
+          pages.sort((a, b) => (a.menu_order || 999) - (b.menu_order || 999));
+        });
+
+        Object.entries(grouped).forEach(([parent, pages]) => {
+          if (parent === 'root') {
+            pages.forEach(page => {
+              const li = document.createElement('li');
+              li.innerHTML = `<a href="#/${page.slug}">${page.title}</a>`;
+              menu.appendChild(li);
+            });
+          } else {
+            const ul = document.createElement('ul');
+            const header = document.createElement('li');
+            header.innerHTML = `<strong>${parent}</strong>`;
+            ul.appendChild(header);
+
+            pages.forEach(page => {
+              const li = document.createElement('li');
+              li.innerHTML = `<a href="#/${page.slug}">${page.title}</a>`;
+              ul.appendChild(li);
+            });
+
+            menu.appendChild(ul);
+          }
+        });
+      }
+
+      buildFooter() {
+        if (this.config.footer?.show_sitemap) {
+          const sitemap = document.getElementById('footer-sitemap');
+          sitemap.innerHTML = this.manifest.pages
+            .filter(p => p.include_in_sitemap)
+            .map(p => `<a href="#/${p.slug}">${p.title}</a>`)
+            .join('');
+        }
+
+        if (this.config.footer?.copyright) {
+          document.getElementById('copyright').textContent = this.config.footer.copyright;
+        }
+      }
+
+      buildSearchIndex() {
+        this.searchIndex = this.manifest.pages.map(page => ({
+          slug: page.slug,
+          title: page.title,
+          tags: page.tags || [],
+          text: `${page.title} ${(page.tags || []).join(' ')}`
+        }));
+      }
+
+      setupSearch() {
+        const searchBox = document.getElementById('search');
+        const resultsDiv = document.getElementById('search-results');
+
+        searchBox.addEventListener('input', (e) => {
+          const query = e.target.value.toLowerCase();
+
+          if (query.length < 2) {
+            resultsDiv.classList.remove('open');
+            return;
+          }
+
+          const results = this.searchIndex
+            .filter(item => item.text.toLowerCase().includes(query))
+            .slice(0, 5);
+
+          if (results.length === 0) {
+            resultsDiv.innerHTML = '<div class="search-result-item">No results found</div>';
+          } else {
+            resultsDiv.innerHTML = results
+              .map(item => `
+                <div class="search-result-item" onclick="window.location.hash='/${item.slug}'">
+                  <div class="title">${this.highlight(item.title, query)}</div>
+                  ${item.tags.length > 0 ? `<div class="snippet">Tags: ${item.tags.join(', ')}</div>` : ''}
+                </div>
+              `)
+              .join('');
+          }
+
+          resultsDiv.classList.add('open');
+        });
+
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.header-controls')) {
+            resultsDiv.classList.remove('open');
+          }
+        });
+      }
+
+      highlight(text, query) {
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<strong>$1</strong>');
+      }
+
+      setupRouting() {
+        window.addEventListener('hashchange', () => this.loadPage());
+      }
+
+      async loadPage() {
+        const hash = window.location.hash.slice(1) || '/';
+        const slug = hash.startsWith('/') ? hash.slice(1) : hash;
+
+        const page = this.manifest.pages.find(p => p.slug === slug);
+
+        if (!page) {
+          this.showError(`Page not found: ${slug}`);
+          return;
+        }
+
+        try {
+          const response = await fetch(page.path);
+          if (!response.ok) throw new Error(`Failed to load ${page.path}`);
+
+          const markdown = await response.text();
+          const { frontmatter, content } = this.parseFrontmatter(markdown);
+
+          document.getElementById('page-title').textContent = page.title;
+          this.updateBreadcrumbs(page.slug);
+          
+          const html = await this.renderMarkdown(content);
+          document.getElementById('page-content').innerHTML = html;
+
+          // Display tags and metadata
+          if (page.tags && page.tags.length > 0) {
+            document.getElementById('page-tags').innerHTML = 
+              `<div>Tags: ${page.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
+          } else {
+            document.getElementById('page-tags').innerHTML = '';
+          }
+
+          // Update active menu item
+          document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+          const activeLink = document.querySelector(`.sidebar a[href="#/${page.slug}"]`);
+          if (activeLink) activeLink.classList.add('active');
+
+          this.currentPage = page;
+        } catch (error) {
+          this.showError(`Error loading page: ${error.message}`);
+        }
+      }
+
+      parseFrontmatter(markdown) {
+        const match = markdown.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+        if (!match) return { frontmatter: {}, content: markdown };
+
+        try {
+          const frontmatter = jsyaml.load(match[1]);
+          const content = match[2];
+          return { frontmatter, content };
+        } catch {
+          return { frontmatter: {}, content: markdown };
+        }
+      }
+
+      async renderMarkdown(markdown) {
+        const html = marked.parse(markdown);
+        return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+      }
+
+      updateBreadcrumbs(slug) {
+        const parts = slug.split('/');
+        const breadcrumbs = document.getElementById('breadcrumbs');
+        
+        breadcrumbs.innerHTML = '<a href="#/">Home</a>' + parts
+          .map((part, i) => {
+            const path = parts.slice(0, i + 1).join('/');
+            const page = this.manifest.pages.find(p => p.slug === path);
+            const title = page ? page.title : part.replace(/-/g, ' ');
+            return `<span>/</span><a href="#/${path}">${title}</a>`;
+          })
+          .join('');
+      }
+
+      showError(message) {
+        document.getElementById('page-content').innerHTML = 
+          `<div class="error-message">${message}</div>`;
+      }
+
+      setupEventListeners() {
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+          document.body.classList.toggle('dark');
+          localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+          this.applyTheme();
+        });
+      }
+    }
+
+    // Initialize when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      new DocsHub();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+pages:
+  - path: "/getting-started/overview.md"
+    title: "Getting Started"
+    slug: "getting-started/overview"
+    tags: ["intro", "setup", "guide"]
+    menu_order: 1
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/getting-started/installation.md"
+    title: "Installation"
+    slug: "getting-started/installation"
+    tags: ["setup", "guide"]
+    menu_order: 2
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/features/markdown-support.md"
+    title: "Markdown Support"
+    slug: "features/markdown-support"
+    tags: ["features", "markdown"]
+    menu_order: 1
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/features/theming.md"
+    title: "Theming"
+    slug: "features/theming"
+    tags: ["features", "customization"]
+    menu_order: 2
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/features/search.md"
+    title: "Full-Text Search"
+    slug: "features/search"
+    tags: ["features", "search"]
+    menu_order: 3
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/api/config.md"
+    title: "Configuration"
+    slug: "api/config"
+    tags: ["api", "configuration"]
+    menu_order: 1
+    include_in_menu: true
+    include_in_sitemap: true
+  
+  - path: "/api/manifest.md"
+    title: "Manifest Schema"
+    slug: "api/manifest"
+    tags: ["api", "schema"]
+    menu_order: 2
+    include_in_menu: true
+    include_in_sitemap: true
