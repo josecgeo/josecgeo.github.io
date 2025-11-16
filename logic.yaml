@@ -26,41 +26,149 @@ project:
     - "Client-side full-text search."
     - "Fully Git-compatible."
 
+frontmatter_schema:
+  description: "Canonical Markdown frontmatter fields used in all content pages."
+  canonical_fields:
+    title:
+      type: "string"
+      required: true
+      description: "Page title displayed in menu, breadcrumbs, and page header."
+    slug:
+      type: "string"
+      required: true
+      description: "URL-friendly identifier (e.g., 'getting-started/overview'). Must be unique."
+    date:
+      type: "string (ISO 8601)"
+      required: false
+      description: "Publication or last-modified date (e.g., '2025-11-01')."
+    tags:
+      type: "array of strings"
+      required: false
+      description: "List of tags for categorization and search filtering."
+    menu:
+      type: "boolean"
+      required: false
+      default: true
+      description: "Whether the page appears in navigation menu."
+    menu_order:
+      type: "number"
+      required: false
+      description: "Sort order in menu (lower values appear first). Used only if menu is true."
+    include_in_sitemap:
+      type: "boolean"
+      required: false
+      default: true
+      description: "Whether the page is included in the footer sitemap."
+    draft:
+      type: "boolean"
+      required: false
+      default: false
+      description: "If true, the page is not displayed (even if linked in manifest.yaml). For future content."
+  example_frontmatter: |
+    ---
+    title: "Getting Started Overview"
+    slug: "getting-started/overview"
+    date: "2025-11-01"
+    tags: ["intro", "setup"]
+    menu: true
+    menu_order: 1
+    include_in_sitemap: true
+    draft: false
+    ---
+
 project_structure:
   root_folder:
     index.html:
       description: "Entry point for the SPA. Handles logic for rendering content, menus, routing, search, and themes."
-      responsibilities:
+        responsibilities:
         - "Loads config.yaml, theme.yaml from the content/ directory."
-        - "Recursively scans content/ to generate navigation structures on each refresh."
-        - "Parses Markdown using marked.js."
-        - "Processes Frontmatter metadata: title, type(if the its shown as main menu or not), order, tags, visibility"
+        - "Recursively scans content/ to generate or fetch navigation structures."
+        - "Parses Markdown using marked.js and sanitizes rendered HTML to prevent XSS."
+        - "Processes Frontmatter metadata: title, slug, date, tags, menu (true|false), menu_order, include_in_sitemap, draft."
         - "Generates menu, breadcrumbs, search index, footer sitemap."
-        - "Initialises theme based on config.yaml."
+        - "Initializes theme based on config.yaml."
         - "Provides hash-based routing (#/path/page)."
-        - "Handles keyboard shortcuts for search and theme toggle."
-        - "Supports collapsible folder sidebar."
+        - "Handles keyboard shortcuts (accessible with focus management) for search and theme toggle."
+        - "Supports collapsible folder sidebar and respects system theme preference."
 
   content:
     description: "Directory where all Markdown and YAML files reside."
     requirements:
-      - "manifest.yaml is generated client-side via directory scan."
+      - "manifest.yaml lists all pages to be indexed and displayed. Only files linked in manifest.yaml will appear on the site."
       - "Nested folders create nested menus."
       - "index.md inside a folder acts as its landing page."
     files:
       manifest.yaml:
-        description: "Auto-generated map of allMarkdown pages with metadata."
-        fields:
-          - "path"
-          - "title"
-          - "slug"
-          - "tags"
-          - "menu_order"
-          - "include_in_menu"
-          - "include_in_sitemap"
+        description: "Pre-generated index of all Markdown pages to be displayed on the site. Only files listed here will appear."
+        schema:
+          pages:
+            description: "Array of page objects."
+            fields:
+              path:
+                type: "string"
+                description: "File path relative to content/ directory (e.g., '/getting-started/overview.md')."
+              title:
+                type: "string"
+                description: "Page title for menu and breadcrumbs."
+              slug:
+                type: "string"
+                description: "URL-friendly identifier (e.g., 'getting-started/overview')."
+              tags:
+                type: "array"
+                description: "List of tags for categorization and search."
+              menu_order:
+                type: "number"
+                description: "Sort order in menu (lower values appear first)."
+              include_in_menu:
+                type: "boolean"
+                description: "Whether to show in navigation menu."
+              include_in_sitemap:
+                type: "boolean"
+                description: "Whether to include in footer sitemap."
+        example:
+          pages:
+            - path: "/getting-started/overview.md"
+              title: "Getting Started"
+              slug: "getting-started/overview"
+              tags: ["intro", "setup"]
+              menu_order: 1
+              include_in_menu: true
+              include_in_sitemap: true
       config.yaml:
         description: "Global configuration for the website."
-        fields:
+        schema:
+          site_name:
+            type: "string"
+            description: "Website name."
+          window_title:
+            type: "string"
+            description: "Title shown in browser tab."
+          slogan:
+            type: "string"
+            description: "Short tagline for the homepage."
+          favicon:
+            type: "string"
+            description: "Path to favicon SVG or ICO."
+          logo:
+            type: "string"
+            description: "Path to logo SVG or image."
+          default_theme:
+            type: "string"
+            description: "Initial theme to load (e.g., 'light', 'dark'). Falls back to system preference if available."
+          available_themes:
+            type: "array"
+            description: "List of theme keys users can switch between."
+          footer:
+            type: "object"
+            description: "Footer configuration."
+            fields:
+              show_sitemap:
+                type: "boolean"
+                description: "Whether to display sitemap in footer."
+              copyright:
+                type: "string"
+                description: "Copyright/attribution text."
+        example:
           site_name: "DocsHub"
           window_title: "DocsHub Documentation"
           slogan: "Documentation made simple"
@@ -76,28 +184,87 @@ project_structure:
             show_sitemap: true
             copyright: "© 2025 DocsHub"
       theme.yaml:
-        description: "Defines color palettes and typography for available themes."
-        fields:
+        description: "Defines color palettes and typography for available themes. Ensure sufficient contrast ratios for accessibility (WCAG AA 4.5:1 for text)."
+        schema:
+          "[theme_name]":
+            type: "object"
+            description: "A theme block (e.g., 'light', 'dark')."
+            fields:
+              colors:
+                type: "object"
+                description: "Color palette for the theme."
+                fields:
+                  background:
+                    type: "string (hex)"
+                    description: "Hex color for page background."
+                  text:
+                    type: "string (hex)"
+                    description: "Hex color for primary text (min contrast 4.5:1 with background)."
+                  sidebar:
+                    type: "string (hex)"
+                    description: "Hex color for sidebar background."
+                  accent:
+                    type: "string (hex)"
+                    description: "Hex color for links and interactive elements."
+              typography:
+                type: "object"
+                description: "Typography settings for the theme."
+                fields:
+                  font_family:
+                    type: "string"
+                    description: "CSS font stack (e.g., 'Inter, system-ui, sans-serif')."
+                  base_size:
+                    type: "string"
+                    description: "Base font size (e.g., '16px')."
+        example:
           light:
-            background: "#ffffff"
-            text: "#1a1a1a"
-            sidebar: "#f5f5f5"
-            accent: "#0070f3"
+            colors:
+              background: "#ffffff"
+              text: "#1a1a1a"
+              sidebar: "#f5f5f5"
+              accent: "#0070f3"
+            typography:
+              font_family: "Inter, system-ui, sans-serif"
+              base_size: "16px"
           dark:
-            background: "#111111"
-            text: "#eeeeee"
-            sidebar: "#1d1d1d"
-            accent: "#4dabf7"
+            colors:
+              background: "#111111"
+              text: "#eeeeee"
+              sidebar: "#1d1d1d"
+              accent: "#4dabf7"
+            typography:
+              font_family: "Inter, system-ui, sans-serif"
+              base_size: "16px"
 
 workflows:
   add_content:
     description: "Steps a user follows to create new documentation pages."
     steps:
-      - "Create a new folder inside content/ or use an existing one."
-      - "Add a Markdown file (e.g., getting-started.md)."
-      - "Include Frontmatter for metadata (title, order, tags)."
-      - "Open the site — manifest.yaml will be regenerated automatically."
-      - "Menu, breadcrumbs, and sitemap update instantly."
+      - "Create a new folder inside content/ for the page section (e.g., content/getting-started/)."
+      - "Add a Markdown file (e.g., overview.md) inside that folder."
+      - "Include Frontmatter for metadata: title, slug, date, tags, menu, menu_order, include_in_sitemap, draft."
+      - "Add an entry for the file in manifest.yaml (path, title, slug, tags, menu_order, include_in_menu, include_in_sitemap)."
+      - "The page will appear on the site once linked in manifest.yaml."
+      - "Example Markdown file (content/getting-started/overview.md):"
+      - "  ---"
+      - "  title: 'Getting Started Overview'"
+      - "  slug: 'getting-started/overview'"
+      - "  date: '2025-11-01'"
+      - "  tags: ['intro', 'setup']"
+      - "  menu: true"
+      - "  menu_order: 1"
+      - "  include_in_sitemap: true"
+      - "  draft: false"
+      - "  ---"
+      - "Example manifest.yaml entry:"
+      - "  pages:"
+      - "    - path: '/getting-started/overview.md'"
+      - "      title: 'Getting Started'"
+      - "      slug: 'getting-started/overview'"
+      - "      tags: ['intro', 'setup']"
+      - "      menu_order: 1"
+      - "      include_in_menu: true"
+      - "      include_in_sitemap: true"
 
   change_theme:
     description: "How a user modifies the website’s appearance."
@@ -109,65 +276,84 @@ workflows:
       - "Use the toggle button to switch between themes at runtime."
 
   update_yaml_settings:
-    description: "Workflow for updating YAML files controlling metadata."
+    description: "Workflow for updating YAML files controlling metadata and appearance."
     steps:
-      - "Open config.yaml for global settings (title, logo, themes, footer)."
-      - "Edit theme.yaml for UI-related options."
-      - "Manifest.yaml is auto-generated — do not manually edit."
-      - "Validate YAML syntax before saving."
-      - "Reload the webpage to reflect changes."
+      - "Open config.yaml for global settings (site_name, logo, available_themes, footer)."
+      - "Edit theme.yaml for color palettes and typography. Verify contrast ratios meet WCAG AA standards."
+      - "Edit manifest.yaml to add, remove, or reorder pages. Only listed files will appear on the site."
+      - "Validate YAML syntax before saving (use a linter: yaml-lint or VS Code YAML extension)."
+      - "Reload the webpage to reflect changes. Theme updates and manifest changes apply instantly."
 
 quality:
   goals:
     - "High usability for non-technical users."
     - "Consistent rendering across browsers and devices."
-    - "Fast loading time under 1 second on modern devices."
+    - "Fast loading time (aim for under 1 second on modern broadband; adjust for target network)."
     - "Clear and predictable content structure."
     - "Minimal JavaScript footprint for better performance."
+    - "Accessible UI following WCAG 2.1 AA standards (keyboard navigation, color contrast, focus indicators)."
   measures:
-    - "JavaScript bundle kept under 200 KB uncompressed."
-    - "Content rendering time < 150 ms."
-    - "Search results appear within 50 ms."
-    - "Theme switching is instant without re-rendering."
+    - "JavaScript bundle under 200 KB uncompressed (or ~50 KB gzipped)."
+    - "Content rendering time < 150 ms for typical content volume (tested with ~100 pages)."
+    - "Search results appear within 100 ms (using prebuilt search index)."
+    - "Theme switching is instant without full re-render."
+    - "Keyboard focus always visible; theme toggle and search keyboard-accessible."
+    - "Color contrast ratios: 4.5:1 for normal text, 3:1 for large text (WCAG AA)."
+    - "No HTML injection or XSS vulnerabilities (sanitize rendered Markdown with DOMPurify)."
 
 testing_methodology:
   unit_testing:
     description: "Tests run on JavaScript functions that manage routing, theme, menu building, and parsing."
     tools:
       - "Jest or Vitest (recommended)."
+      - "YAML linting (yaml-lint or similar)."
     examples:
-      - "Test Markdown parsing edge cases."
-      - "Test theme switching logic."
-      - "Test directory scanning and manifest building."
+      - "Test Markdown parsing edge cases with marked.js."
+      - "Test HTML sanitization (no XSS payloads escape)."
+      - "Test theme switching logic and localStorage persistence."
+      - "Test search indexing and query filtering."
+      - "Test menu generation from manifest structure (nested, ordered)."
 
   integration_testing:
-    description: "Testing full flows inside the SPA."
+    description: "Testing full flows inside the SPA and across browser environments."
     scenarios:
-      - "Load site with no content — show helpful error."
-      - "Load site with nested folders — menu builds correctly."
-      - "Add new Markdown file — menu updates instantly."
-      - "Breadcrumbs correctly reflect nested paths."
-      - "Search index updates after adding content."
+      - "Load site with no content — show helpful error and fallback UI."
+      - "Load site with pages listed in manifest.yaml — menu builds correctly with proper hierarchy."
+      - "Add new Markdown file and link it in manifest.yaml — page appears on site and menu updates."
+      - "Remove page from manifest.yaml — page no longer appears (even if file exists)."
+      - "Breadcrumbs correctly reflect nested paths and are keyboard-navigable."
+      - "Search index includes only pages listed in manifest.yaml and filters results accurately."
+      - "Theme toggle persists across page reloads (localStorage)."
+      - "Rendered Markdown contains no raw HTML injection or XSS vectors."
+      - "Site works offline if manifest and pages are cached."
 
   usability_testing:
-    description: "Ensures DocsHub is comfortable for non-technical users."
+    description: "Ensures DocsHub is comfortable for non-technical users and meets accessibility standards."
     methods:
-      - "Test navigation on mobile vs desktop."
-      - "Verify readability in light and dark themes."
-      - "Validate spacing, contrast, and typography."
+      - "Test navigation on mobile vs desktop (responsive design)."
+      - "Verify readability in light and dark themes and high-contrast modes."
+      - "Validate spacing, contrast (WCAG AA 4.5:1), and typography."
+      - "Test keyboard-only navigation (no mouse): tab through menu, search, theme toggle."
+      - "Use screen reader (NVDA, JAWS, VoiceOver) to verify menu and page structure."
+      - "Test with real non-technical users creating and updating content."
 
   performance_testing:
     metrics:
-      - "First paint < 0.5s"
-      - "Menu generation < 100ms for 500 pages"
-      - "Search index build < 300ms"
+      - "First Contentful Paint (FCP) < 0.5s on modern broadband (6 Mbps download, 28ms latency)."
+      - "Menu generation < 100ms for typical page counts (100–500 pages)."
+      - "Search index query < 100ms for results on prebuilt index."
+      - "JavaScript parse + execution < 200ms on mid-range mobile device (Moto G4)."
     tools:
-      - "Chrome DevTools Lighthouse"
-      - "WebPageTest"
+      - "Chrome DevTools Lighthouse (runs locally or in CI)."
+      - "WebPageTest (for real-world network conditions)."
+      - "Performance Observer API (measure in-app metrics)."
 
   yaml_validation:
-    description: "Ensures all YAML files are properly structured."
+    description: "Ensures all YAML files are properly structured and conform to schemas."
     steps:
-      - "Use a YAML linter before saving."
-      - "Validate theme.yaml for required keys."
-      - "Ensure config.yaml matches expected schema."
+      - "Use a YAML linter (VS Code YAML extension, yaml-lint, or Prettier) before saving."
+      - "Validate theme.yaml for required keys per theme (colors, typography)."
+      - "Validate config.yaml has required keys (site_name, default_theme, available_themes, footer)."
+      - "Ensure manifest.yaml contains valid page entries (path, title, slug, tags, menu_order, include_in_menu, include_in_sitemap)."
+      - "Verify all paths in manifest.yaml point to existing Markdown files."
+      - "Check Markdown Frontmatter matches canonical keys (title, slug, date, tags, menu, menu_order, include_in_sitemap, draft)."
