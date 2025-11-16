@@ -1,345 +1,173 @@
-product:
+project:
   name: "DocsHub"
-  type: "Static Documentation Platform"
-  purpose: "Enable anyone to create, organize, and publish professional documentation without technical knowledge"
+  description: "A simple static website generator using HTML, CSS, and JavaScript, with content generated from Markdown and YAML."
+
+  technologies:
+    HTML: "Single-page application stored in index.html."
+    CSS3: "Embedded styles and theme switching."
+    JavaScript: "SPA routing, menu generation, search, theming, and dynamic loading."
+    marked.js: "Renders Markdown pages to HTML."
+    YAML: "Used for manifest.yaml, theme.yaml, config.yaml."
+    Markdown: "Used for all content pages in content/."
+
+  purpose: "Enable anyone to create, organize, and publish documentation without technical complexity."
+
   target_audience:
-    - content_creators
-    - documentation_teams
-    - project_owners
-  deployment: "No server required - works anywhere"
+    content_creators: "Writers who need quick documentation sites."
+    documentation_teams: "Collaborative documentation maintainers."
+    project_owners: "Developers and managers needing lightweight documentation."
 
-core_benefits:
-  - "No database or backend server needed"
-  - "All content stored as simple text files"
-  - "Automatically generates professional website"
-  - "Works on all devices (desktop, tablet, mobile)"
-  - "Light and dark mode included"
-  - "Full-text search functionality"
-  - "Version control friendly (Git)"
+  core_benefits:
+    - "Zero backend — fully static."
+    - "All content stored as plain text."
+    - "Auto-generated menu, sitemap, breadcrumbs."
+    - "Mobile-friendly responsive UI."
+    - "Dark/light/custom themes."
+    - "Client-side full-text search."
+    - "Fully Git-compatible."
 
-content_organization:
-  hierarchy:
-    - level: "section"
-      description: "Top-level category (folder)"
-      examples: ["Home", "About", "Blog", "Docs"]
-    - level: "page"
-      description: "Individual document within section"
-      examples: ["Installation Guide", "Blog Post", "Team Page"]
-  
-  default_sections:
-    home:
-      title: "Home"
-      purpose: "Main landing page and entry point"
-      pages_count: 1
-    about:
-      title: "About"
-      purpose: "Team and project information"
-      pages_count: 2
-    blog:
-      title: "Blog"
-      purpose: "Articles, news, and updates"
-      pages_count: 3
-    docs:
-      title: "Docs"
-      purpose: "Technical documentation and guides"
-      pages_count: 3
+project_structure:
+  root_folder:
+    index.html:
+      description: "Entry point for the SPA. Handles logic for rendering content, menus, routing, search, and themes."
+      responsibilities:
+        - "Loads config.yaml, theme.yaml from the content/ directory."
+        - "Recursively scans content/ to generate navigation structures on each refresh."
+        - "Parses Markdown using marked.js."
+        - "Processes Frontmatter metadata: title, type(if the its shown as main menu or not), order, tags, visibility"
+        - "Generates menu, breadcrumbs, search index, footer sitemap."
+        - "Initialises theme based on config.yaml."
+        - "Provides hash-based routing (#/path/page)."
+        - "Handles keyboard shortcuts for search and theme toggle."
+        - "Supports collapsible folder sidebar."
 
-navigation_system:
-  components:
-    - name: "Top Header"
-      shows: "Logo, site name, search bar, theme toggle"
-      position: "Top of page"
-      always_visible: true
-    
-    - name: "Sidebar Menu"
-      shows: "All sections and pages"
-      position: "Left side"
-      desktop: "Always visible"
-      mobile: "Toggle with hamburger button"
-    
-    - name: "Breadcrumb Trail"
-      shows: "Current location in hierarchy"
-      format: "Home > Section > Page"
-      helps: "Users understand where they are"
-    
-    - name: "Hamburger Button"
-      shows: "Mobile menu toggle"
-      position: "Top right (always visible on mobile)"
-      behavior: "Shows/hides sidebar overlay"
+  content:
+    description: "Directory where all Markdown and YAML files reside."
+    requirements:
+      - "manifest.yaml is generated client-side via directory scan."
+      - "Nested folders create nested menus."
+      - "index.md inside a folder acts as its landing page."
+    files:
+      manifest.yaml:
+        description: "Auto-generated map of allMarkdown pages with metadata."
+        fields:
+          - "path"
+          - "title"
+          - "slug"
+          - "tags"
+          - "menu_order"
+          - "include_in_menu"
+          - "include_in_sitemap"
+      config.yaml:
+        description: "Global configuration for the website."
+        fields:
+          site_name: "DocsHub"
+          window_title: "DocsHub Documentation"
+          slogan: "Documentation made simple"
+          favicon: "/assets/favicon.svg"
+          logo: "/assets/logo.svg"
+          default_theme: "light"
+          available_themes:
+            - "light"
+            - "dark"
+            - "blue"
+            - "high_contrast"
+          footer:
+            show_sitemap: true
+            copyright: "© 2025 DocsHub"
+      theme.yaml:
+        description: "Defines color palettes and typography for available themes."
+        fields:
+          light:
+            background: "#ffffff"
+            text: "#1a1a1a"
+            sidebar: "#f5f5f5"
+            accent: "#0070f3"
+          dark:
+            background: "#111111"
+            text: "#eeeeee"
+            sidebar: "#1d1d1d"
+            accent: "#4dabf7"
 
-search_functionality:
-  capability: "Real-time full-text search"
-  searches:
-    - page_titles
-    - page_content
-    - metadata
-  triggers:
-    - typing_in_search_box: "Shows results as you type"
-    - keyboard_shortcut: "Ctrl+K or Cmd+K focuses search"
-    - escape_key: "Closes search dropdown"
-  results: "Up to 10 matching pages with preview"
-  indexing: "Automatic - happens during page load"
+workflows:
+  add_content:
+    description: "Steps a user follows to create new documentation pages."
+    steps:
+      - "Create a new folder inside content/ or use an existing one."
+      - "Add a Markdown file (e.g., getting-started.md)."
+      - "Include Frontmatter for metadata (title, order, tags)."
+      - "Open the site — manifest.yaml will be regenerated automatically."
+      - "Menu, breadcrumbs, and sitemap update instantly."
 
-page_metadata:
-  concept: "Extra information about each page stored in YAML"
-  purpose: "Controls how page appears in menus and search"
-  fields:
-    title:
-      description: "Display name of page"
-      example: "Installation Guide"
-      required: true
-    
-    menu_position:
-      description: "Numeric order in menu (1=first, 2=second)"
-      example: 2
-      default: 999
-      required: false
-    
-    menu_title:
-      description: "Text to show in menu (different from page title)"
-      example: "Install"
-      required: false
-    
-    searchable:
-      description: "Whether page appears in search results"
-      example: true
-      default: true
-      required: false
+  change_theme:
+    description: "How a user modifies the website’s appearance."
+    steps:
+      - "Open content/theme.yaml."
+      - "Modify theme color values or add a new theme block."
+      - "Open content/config.yaml and set default_theme to the new theme."
+      - "Reload the browser — the theme applies immediately."
+      - "Use the toggle button to switch between themes at runtime."
 
-file_management:
-  content_format:
-    name: "YAML with embedded Markdown"
-    structure:
-      - metadata_top: "YAML format"
-      - content_below: "Markdown in 'body' field"
-    
-  file_naming:
-    convention: "lowercase with hyphens"
+  update_yaml_settings:
+    description: "Workflow for updating YAML files controlling metadata."
+    steps:
+      - "Open config.yaml for global settings (title, logo, themes, footer)."
+      - "Edit theme.yaml for UI-related options."
+      - "Manifest.yaml is auto-generated — do not manually edit."
+      - "Validate YAML syntax before saving."
+      - "Reload the webpage to reflect changes."
+
+quality:
+  goals:
+    - "High usability for non-technical users."
+    - "Consistent rendering across browsers and devices."
+    - "Fast loading time under 1 second on modern devices."
+    - "Clear and predictable content structure."
+    - "Minimal JavaScript footprint for better performance."
+  measures:
+    - "JavaScript bundle kept under 200 KB uncompressed."
+    - "Content rendering time < 150 ms."
+    - "Search results appear within 50 ms."
+    - "Theme switching is instant without re-rendering."
+
+testing_methodology:
+  unit_testing:
+    description: "Tests run on JavaScript functions that manage routing, theme, menu building, and parsing."
+    tools:
+      - "Jest or Vitest (recommended)."
     examples:
-      correct: ["getting-started.yaml", "first-post.yaml"]
-      incorrect: ["Getting Started.yaml", "first_post.yaml"]
-    
-  file_locations:
-    example_structure: |
-      content/
-      ├── favicon.svg          (site icon)
-      ├── logo.svg             (site logo)
-      ├── manifest.yaml        (site structure)
-      ├── home/
-      │   └── index.yaml
-      ├── blog/
-      │   ├── index.yaml
-      │   ├── first-post.yaml
-      │   └── second-post.yaml
-      ├── about/
-      │   ├── index.yaml
-      │   └── team.yaml
-      └── docs/
-          ├── index.yaml
-          ├── installation.yaml
-          └── usage.yaml
+      - "Test Markdown parsing edge cases."
+      - "Test theme switching logic."
+      - "Test directory scanning and manifest building."
 
-configuration_files:
-  manifest_yaml:
-    purpose: "Central registry for all site structure"
-    defines:
-      - site_name_and_tagline
-      - color_scheme_light_and_dark
-      - all_sections_and_pages
-      - header_footer_content
-      - which_pages_searchable
-    controls: "Everything about the site"
-  
-  content_yaml:
-    purpose: "Individual page files"
-    example_file: "blog/first-post.yaml"
-    contains:
-      - page_title
-      - menu_position
-      - page_content_markdown
-    format: "YAML with 'body' field containing Markdown"
+  integration_testing:
+    description: "Testing full flows inside the SPA."
+    scenarios:
+      - "Load site with no content — show helpful error."
+      - "Load site with nested folders — menu builds correctly."
+      - "Add new Markdown file — menu updates instantly."
+      - "Breadcrumbs correctly reflect nested paths."
+      - "Search index updates after adding content."
 
-user_workflows:
-  add_new_page:
+  usability_testing:
+    description: "Ensures DocsHub is comfortable for non-technical users."
+    methods:
+      - "Test navigation on mobile vs desktop."
+      - "Verify readability in light and dark themes."
+      - "Validate spacing, contrast, and typography."
+
+  performance_testing:
+    metrics:
+      - "First paint < 0.5s"
+      - "Menu generation < 100ms for 500 pages"
+      - "Search index build < 300ms"
+    tools:
+      - "Chrome DevTools Lighthouse"
+      - "WebPageTest"
+
+  yaml_validation:
+    description: "Ensures all YAML files are properly structured."
     steps:
-      1: "Create new YAML file in section folder"
-      2: "Add title and body content"
-      3: "Add entry to manifest.yaml"
-      4: "Refresh browser"
-    time: "1-2 minutes"
-    complexity: "Easy"
-  
-  create_new_section:
-    steps:
-      1: "Create new folder in content/"
-      2: "Add index.yaml file"
-      3: "Add section to manifest.yaml"
-      4: "Refresh browser"
-    time: "3-5 minutes"
-    complexity: "Easy"
-  
-  change_site_name:
-    steps:
-      1: "Edit manifest.yaml"
-      2: "Find 'config:' section"
-      3: "Change 'site_name' value"
-      4: "Refresh browser"
-    time: "30 seconds"
-    complexity: "Very Easy"
-  
-  change_colors:
-    steps:
-      1: "Edit manifest.yaml"
-      2: "Find 'theme:' section"
-      3: "Change hex color values"
-      4: "Refresh browser"
-    time: "1 minute"
-    complexity: "Easy"
-  
-  reorder_menu:
-    steps:
-      1: "Edit page's YAML file"
-      2: "Change 'menu_position' number"
-      3: "Lower number = appears first"
-      4: "Refresh browser"
-    time: "30 seconds"
-    complexity: "Very Easy"
-
-formatting_system:
-  markup_language: "Markdown"
-  purpose: "Simple, readable way to write formatted text"
-  common_syntax:
-    heading: "# Main Title"
-    subheading: "## Sub Title"
-    bold: "**bold text**"
-    italic: "*italic text*"
-    link: "[link text](https://url.com)"
-    list_bullet: "- item 1"
-    list_numbered: "1. first"
-    code_inline: "`code`"
-    code_block: "```language code here ```"
-    blockquote: "> quote text"
-    line_break: "---"
-
-presentation_system:
-  color_modes:
-    light_mode:
-      when: "Daytime or user preference"
-      colors: "Light backgrounds, dark text"
-      file: "light_mode section in manifest.yaml"
-    
-    dark_mode:
-      when: "Nighttime or user preference"
-      colors: "Dark backgrounds, light text"
-      file: "dark_mode section in manifest.yaml"
-    
-    toggle: "User clicks theme button (top right)"
-    persistence: "Preference saved in browser"
-  
-  responsive_layout:
-    desktop_wide:
-      width: "> 1024px"
-      sidebar: "Always visible"
-      hamburger: "Hidden"
-    
-    tablet:
-      width: "768px - 1024px"
-      sidebar: "Toggleable with hamburger"
-      hamburger: "Visible on left"
-    
-    mobile:
-      width: "< 768px"
-      sidebar: "Full-height overlay, toggleable"
-      hamburger: "Visible on left"
-    
-    very_small:
-      width: "< 480px"
-      layout: "Minimal spacing"
-      header: "Stacked flexbox"
-      sidebar: "Full width when open"
-
-quality_standards:
-  do:
-    - "Use descriptive page titles"
-    - "Organize related content logically"
-    - "Update manifest.yaml when adding pages"
-    - "Use lowercase filenames"
-    - "Keep writing clear and concise"
-    - "Link related content together"
-  
-  dont:
-    - "Use special characters in filenames"
-    - "Leave pages unorganized"
-    - "Forget to update manifest.yaml"
-    - "Create deeply nested folders"
-    - "Mix unrelated content in sections"
-
-common_questions:
-  rebuild_needed:
-    question: "Must I rebuild after content changes?"
-    answer: "No - refresh browser and changes appear instantly"
-  
-  add_section:
-    question: "Can I create more than 4 sections?"
-    answer: "Yes - create folder and add to manifest.yaml"
-  
-  page_limit:
-    question: "Limit on pages or sections?"
-    answer: "No - as many as you need"
-  
-  images:
-    question: "How do I add images?"
-    answer: "Host externally and link in Markdown: ![alt](url)"
-  
-  scheduling:
-    question: "Can I schedule content to publish later?"
-    answer: "No - manually add/remove pages as needed"
-  
-  collaboration:
-    question: "Can multiple people edit?"
-    answer: "Yes - use Git for version control and collaboration"
-  
-  font_changes:
-    question: "Can I change fonts?"
-    answer: "Yes - edit CSS in index.html file"
-
-ai_instructions:
-  purpose: "Guide AI to understand and work with DocsHub consistently"
-  
-  content_structure:
-    description: "All content organized in logical sections"
-    rule: "Sections represent major topics, pages are specific documents"
-    rule_example: "Blog section (topic) > First Post (specific document)"
-  
-  metadata_importance:
-    description: "Metadata controls visibility and ordering"
-    rule: "Every page must have title and body"
-    rule_optional: "menu_position controls menu order, searchable controls search visibility"
-  
-  naming_conventions:
-    description: "Consistent naming ensures reliability"
-    rule: "Use lowercase, hyphens between words, no special characters"
-    rule_example: "getting-started.yaml, not Getting-Started.yaml"
-  
-  yaml_format:
-    description: "YAML provides structured, readable configuration"
-    rule: "Top-level fields: title, menu_position, menu_title, searchable, body"
-    rule_body: "body field contains Markdown formatted text"
-  
-  output_consistency:
-    description: "Ensures AI produces predictable, usable output"
-    rule: "Always follow metadata structure when creating content"
-    rule: "Always use proper YAML indentation"
-    rule: "Always format body content as valid Markdown"
-  
-  error_prevention:
-    description: "Avoid common mistakes"
-    avoid: "Don't create pages without adding to manifest.yaml"
-    avoid: "Don't use mixed case in filenames"
-    avoid: "Don't forget YAML indentation"
-    avoid: "Don't leave title field empty"
-
-version: "1.0"
-last_updated: "November 2025"
-format: "YAML"
-audience: "Humans and AI"
+      - "Use a YAML linter before saving."
+      - "Validate theme.yaml for required keys."
+      - "Ensure config.yaml matches expected schema."
